@@ -61,6 +61,5 @@ class Scrapper:
                          headers=self.headers)
         if r.status_code == 401:
             raise ValueError("The discord token appears to be invalid. If you "
-                             "are using a user token make sure --bot is set "
-                             "to False. Otherwise make sure the bot has "
-                             "sufficient privileges.")
+                             "are using a user token make sure --no-bot "
+                             "is set.")

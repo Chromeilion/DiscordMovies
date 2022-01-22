@@ -31,7 +31,7 @@ When running the program, the generated Google user token will be saved to your 
 # Discord Auth
 In order to be able to access Discord, the program needs an authorization token. This could either be a Discord bot token (the official way to do it) or a Discord user token (the bannable way to do it).
 
-If you'd like to use a user token, pass ```--bot False``` when running the program.
+If you'd like to use a user token, pass ```--no-bot``` when running the program.
 
 # Running
 First make sure to install the dependancies with:

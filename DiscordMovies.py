@@ -33,11 +33,8 @@ parser.add_argument('--max-messages', action='store', type=int,
                          'large amount may result in rate limiting.',
                     default=100)
 
-parser.add_argument('--bot', action='store', type=bool,
-                    help='True if token is bot token, False if token is user '
-                         'token.',
-                    default=True,
-                    choices=[True, False])
+parser.add_argument('--no-bot', action='store_true',
+                    help='Use if token is not a bot token.')
 
 args = parser.parse_args()
 
@@ -52,6 +49,11 @@ if not args.output:
         print("Output type loaded from environment.")
     else:
         raise TypeError('Please specify an output type.')
+else:
+    output = args.output
+    if not output:
+        raise TypeError("Output must be specified either as an argument or in "
+                        "environment.")
 
 if not args.token:
     from dotenv import load_dotenv
@@ -90,25 +92,30 @@ if not args.google_sheets_id and args.output == "sheets":
 else:
     sheet_id = args.google_sheets_id
 
+if args.no_bot:
+    bot = False
+else:
+    bot = True
+
 filename = args.filename
-bot = args.bot
 max_messages = args.max_messages
 
-if args.output == "sheet":
-    discordmovies.DiscordMovies(token).discord_to_sheets(
+if output == "sheet":
+    discordmovies.DiscordMovies(discord_auth_token=token,
+                                bot=bot).discord_to_sheets(
         channel_id=channel_id,
         sheet_id=sheet_id,
         sheet_name=filename,
         max_messages=max_messages)
 
-elif args.output == "csv":
+elif output == "csv":
     discordmovies.DiscordMovies(discord_auth_token=token,
                                 bot=bot).discord_to_csv(
         channel_id=channel_id,
         csv_name=filename,
         max_messages=max_messages)
 
-elif args.output == "all":
+elif output == "all":
     discordmovies.DiscordMovies(discord_auth_token=token,
                                 bot=bot).discord_to_sheets(
         channel_id=channel_id,
