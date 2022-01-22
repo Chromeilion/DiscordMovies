@@ -2,9 +2,8 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 import os.path
-import ast
 import json
-from io import StringIO
+
 
 class Creds:
     """
@@ -35,7 +34,7 @@ class Creds:
                 return True
             elif "GOOGLE_USER_CREDENTIALS" in os.environ:
                 creds_env = os.environ["GOOGLE_USER_CREDENTIALS"]
-                creds_env = ast.literal_eval(creds_env)
+                creds_env = json.loads(creds_env)
                 creds = Credentials.from_authorized_user_info(creds_env)
 
                 if creds.expired:
@@ -90,7 +89,7 @@ class Creds:
 
                 elif "GOOGLE_APP_CREDENTIALS" in os.environ:
                     flow = InstalledAppFlow.from_client_config(
-                        ast.literal_eval(
+                        json.loads(
                             os.environ["GOOGLE_APP_CREDENTIALS"]),
                         self.SCOPES
                     )
