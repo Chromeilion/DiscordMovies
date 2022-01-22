@@ -1,6 +1,7 @@
 import os
 import discordmovies
 import argparse
+from dotenv import load_dotenv
 
 parser = argparse.ArgumentParser(prog='DiscordMovies',
                                  description='Extract links from a discord '
@@ -32,7 +33,15 @@ parser.add_argument('--max-messages', action='store', type=int,
                          'large amount may result in rate limiting.',
                     default=100)
 
+parser.add_argument('--bot', action='store', type=bool,
+                    help='True if token is bot token, False if token is user '
+                         'token.',
+                    default=True,
+                    choices=[True, False])
+
 args = parser.parse_args()
+
+load_dotenv()
 
 if not args.output:
     if "OUTPUT_TYPE" in os.environ:
@@ -82,7 +91,7 @@ else:
     sheet_id = args.google_sheets_id
 
 filename = args.filename
-
+bot = args.bot
 max_messages = args.max_messages
 
 if args.output == "sheet":
@@ -93,17 +102,22 @@ if args.output == "sheet":
         max_messages=max_messages)
 
 elif args.output == "csv":
-    discordmovies.DiscordMovies(token).discord_to_csv(channel_id=channel_id,
-                                                      csv_name=filename,
-                                                      max_messages=max_messages)
+    discordmovies.DiscordMovies(discord_auth_token=token,
+                                bot=bot).discord_to_csv(
+        channel_id=channel_id,
+        csv_name=filename,
+        max_messages=max_messages)
 
 elif args.output == "all":
-    discordmovies.DiscordMovies(token).discord_to_sheets(
+    discordmovies.DiscordMovies(discord_auth_token=token,
+                                bot=bot).discord_to_sheets(
         channel_id=channel_id,
         sheet_id=sheet_id,
         sheet_name=filename,
         max_messages=max_messages)
 
-    discordmovies.DiscordMovies(token).discord_to_csv(channel_id=channel_id,
-                                                      csv_name=filename,
-                                                      max_messages=max_messages)
+    discordmovies.DiscordMovies(discord_auth_token=token,
+                                bot=bot).discord_to_csv(
+        channel_id=channel_id,
+        csv_name=filename,
+        max_messages=max_messages)

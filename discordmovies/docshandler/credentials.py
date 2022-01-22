@@ -3,7 +3,8 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 import os.path
 import ast
-
+import json
+from io import StringIO
 
 class Creds:
     """
@@ -68,8 +69,7 @@ class Creds:
             self.creds = Credentials.from_authorized_user_file('token.json',
                                                                self.SCOPES)
         elif "GOOGLE_USER_CREDENTIALS" in os.environ:
-            creds_env = os.environ["GOOGLE_USER_CREDENTIALS"]
-            creds_env = ast.literal_eval(creds_env)
+            creds_env = json.loads(os.environ["GOOGLE_USER_CREDENTIALS"])
             self.creds = Credentials.from_authorized_user_info(creds_env)
 
         if not self.creds or not self.creds.valid:
@@ -82,6 +82,12 @@ class Creds:
 
                     self.creds = flow.run_local_server(port=0)
 
+                    # Save the credentials for the next run
+                    with open('token.json', 'w') as token:
+                        token.write(self.creds.to_json())
+                    print("Credentials have been renewed and saved to "
+                          "token.json")
+
                 elif "GOOGLE_APP_CREDENTIALS" in os.environ:
                     flow = InstalledAppFlow.from_client_config(
                         ast.literal_eval(
@@ -90,7 +96,31 @@ class Creds:
                     )
                     self.creds = flow.run_local_server(port=0)
 
-                # Save the credentials for the next run
-                print("Credentials have been renewed and saved to token.json")
-                with open('token.json', 'w') as token:
-                    token.write(self.creds.to_json())
+                    from dotenv import find_dotenv, set_key
+
+                    # Save credentials to environment for the next run
+                    user_creds = self.creds.to_json()
+                    os.environ["GOOGLE_USER_CREDENTIALS"] = user_creds
+                    file = find_dotenv()
+
+                    if not file:
+                        # Save the credentials to a file
+                        with open('token.json', 'w') as token:
+                            token.write(user_creds)
+                        print("Credentials have been renewed. No .env file "
+                              "was found, so they were saved to token.json")
+                    else:
+                        # Save credentials to .env file
+                        set_key(file, "GOOGLE_USER_CREDENTIALS",
+                                user_creds)
+                        print('Credentials have been renewed and saved to '
+                              '.env file')
+
+                else:
+                    raise FileNotFoundError("the Google user token is invalid "
+                                            "and credentials.json has not "
+                                            "been found. Therefore, it is "
+                                            "impossible to generate a user "
+                                            "token. Please set up "
+                                            "credentials.json in order to "
+                                            "generate a new user token.")

@@ -10,9 +10,10 @@ class DiscordMovies:
     or exported to a CSV.
     """
 
-    def __init__(self, discord_auth_token: Union[str, int]):
+    def __init__(self, discord_auth_token: Union[str, int], bot: bool = True):
         self.auth_token = discord_auth_token
-        self.scrapper = Scrapper(auth=discord_auth_token)
+        self.scrapper = Scrapper(auth=discord_auth_token,
+                                 bot=bot)
         self.links = []
 
     def discord_to_sheets(self, channel_id: Union[str, int],

@@ -9,11 +9,16 @@ class Scrapper:
     from Discord.
     """
 
-    def __init__(self, auth: Union[int, str]):
-        self.auth_token = auth
-        self.headers = {
-            "authorization": self.auth_token,
-        }
+    def __init__(self, auth: Union[int, str], bot: bool = True):
+        if bot:
+            self.headers = {
+                "authorization": f"Bot {auth}",
+            }
+        else:
+            self.headers = {
+                "authorization": auth,
+            }
+        self.check_token()
 
     def get_messages(self, channel_id: Union[int, str],
                      max_messages: int = 100) -> list:
@@ -50,3 +55,12 @@ class Scrapper:
             messages.append(result)
 
         return messages
+
+    def check_token(self):
+        r = requests.get(f"https://discordapp.com/api/v9/users/@me",
+                         headers=self.headers)
+        if r.status_code == 401:
+            raise ValueError("The discord token appears to be invalid. If you "
+                             "are using a user token make sure --bot is set "
+                             "to False. Otherwise make sure the bot has "
+                             "sufficient privileges.")
