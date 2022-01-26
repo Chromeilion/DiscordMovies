@@ -100,7 +100,7 @@ else:
 filename = args.filename
 max_messages = args.max_messages
 
-if output == "sheet":
+if output == "sheet" or output == "all":
     discordmovies.DiscordMovies(discord_auth_token=token,
                                 bot=bot).discord_to_sheets(
         channel_id=channel_id,
@@ -108,21 +108,7 @@ if output == "sheet":
         sheet_name=filename,
         max_messages=max_messages)
 
-elif output == "csv":
-    discordmovies.DiscordMovies(discord_auth_token=token,
-                                bot=bot).discord_to_csv(
-        channel_id=channel_id,
-        csv_name=filename,
-        max_messages=max_messages)
-
-elif output == "all":
-    discordmovies.DiscordMovies(discord_auth_token=token,
-                                bot=bot).discord_to_sheets(
-        channel_id=channel_id,
-        sheet_id=sheet_id,
-        sheet_name=filename,
-        max_messages=max_messages)
-
+if output == "csv" or output == "all":
     discordmovies.DiscordMovies(discord_auth_token=token,
                                 bot=bot).discord_to_csv(
         channel_id=channel_id,
