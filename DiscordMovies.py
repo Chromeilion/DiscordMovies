@@ -36,6 +36,9 @@ parser.add_argument('--max-messages', action='store', type=int,
 parser.add_argument('--no-bot', action='store_true',
                     help='Use if token is not a bot token.')
 
+parser.add_argument('--tmdb-api-key', action='store_true',
+                    help='An API key for The Movie Database')
+
 args = parser.parse_args()
 
 load_dotenv()
@@ -97,6 +100,17 @@ if args.no_bot:
 else:
     bot = True
 
+if not args.tmdb_api_key:
+    if "TMDB_API_KEY" in os.environ:
+        tmdb_api_key = os.environ["TMDB_API_KEY"]
+        print("TMDB API key type loaded from environment.")
+    else:
+        print("No TMDB API key detected. Continuing without it. There may be "
+              "some data missing.")
+        tmdb_api_key = None
+else:
+    tmdb_api_key = args.tmdb_api_key
+
 filename = args.filename
 max_messages = args.max_messages
 
@@ -106,11 +120,13 @@ if output == "sheet" or output == "all":
         channel_id=channel_id,
         sheet_id=sheet_id,
         sheet_name=filename,
-        max_messages=max_messages)
+        max_messages=max_messages,
+        tmdb_api_key=tmdb_api_key)
 
 if output == "csv" or output == "all":
     discordmovies.DiscordMovies(discord_auth_token=token,
                                 bot=bot).discord_to_csv(
         channel_id=channel_id,
         csv_name=filename,
-        max_messages=max_messages)
+        max_messages=max_messages,
+        imdb_api_key=tmdb_api_key)
