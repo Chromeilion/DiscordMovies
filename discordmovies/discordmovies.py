@@ -10,11 +10,13 @@ class DiscordMovies:
     or exported to a CSV.
     """
 
-    def __init__(self, discord_auth_token: Union[str, int], bot: bool = True):
+    def __init__(self, discord_auth_token: Union[str, int], bot: bool = True,
+                 row_height: int = 148):
         self.auth_token = discord_auth_token
         self.scrapper = Scrapper()
         self.content = []
         self.bot = bot
+        self.row_height = row_height
 
     def discord_to_sheets(self, channel_id: Union[str, int],
                           sheet_id: Union[str, int] = None,
@@ -47,6 +49,7 @@ class DiscordMovies:
         if not handler.check_existence():
             handler.create_sheet(title=sheet_name)
             handler.fill_sheet(content_sheets)
+            handler.adjust_row_height(self.row_height)
 
         else:
             sheet = handler.get_doc_contents()
@@ -56,6 +59,7 @@ class DiscordMovies:
                     self.content.remove(i)
 
             handler.append_sheet(self.content)
+            handler.adjust_row_height(self.row_height)
 
     def discord_to_csv(self, channel_id: Union[str, int],
                        csv_name: str = "DiscordMovies",
@@ -76,7 +80,7 @@ class DiscordMovies:
         # Check if links have already been calculated.
         if len(self.content) == 0:
             self.get_links(channel_id=channel_id, max_messages=max_messages,
-                           imdb_api_key=tmdb_api_key)
+                           tmdb_api_key=tmdb_api_key)
 
         # Check if the csv already exists and whether we need to rewrite it
         # or not.

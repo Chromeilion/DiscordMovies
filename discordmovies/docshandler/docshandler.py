@@ -108,4 +108,25 @@ class DocsHandler:
         Changes height of all rows to value given.
         """
 
-        adjust_columns = self.service.adjust_row_width()
+        requests = [
+            {
+                "updateDimensionProperties": {
+                    "range": {
+                        "dimension": "ROWS",
+                    },
+                    "properties": {
+                        "pixelSize": height
+                    },
+                    "fields": "pixelSize"
+                }
+            }
+
+        ]
+
+        body = {
+            'requests': requests
+        }
+
+        response = self.service.spreadsheets().batchUpdate(
+            spreadsheetId=self.spreadsheet_id,
+            body=body).execute()
