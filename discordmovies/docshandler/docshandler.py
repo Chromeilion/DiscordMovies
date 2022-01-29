@@ -66,7 +66,7 @@ class DocsHandler:
              "values": inputs}
         ]
         body = {
-            'valueInputOption': "RAW",
+            'valueInputOption': "USER_ENTERED",
             'data': data
         }
         result = self.service.spreadsheets().values().batchUpdate(
@@ -98,7 +98,14 @@ class DocsHandler:
         }
         result = self.service.spreadsheets().values().append(
             spreadsheetId=self.spreadsheet_id, range="A:Z",
-            valueInputOption="RAW", body=body).execute()
+            valueInputOption="USER_ENTERED", body=body).execute()
         print('{0} cells appended.'.format(result
                                            .get('updates')
                                            .get('updatedCells')))
+
+    def adjust_row_height(self, height):
+        """
+        Changes height of all rows to value given.
+        """
+
+        adjust_columns = self.service.adjust_row_width()

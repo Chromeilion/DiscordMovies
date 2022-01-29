@@ -32,6 +32,12 @@ class DiscordMovies:
         if len(self.content) == 0:
             self.get_links(channel_id=channel_id, max_messages=max_messages,
                            tmdb_api_key=tmdb_api_key)
+            content_sheets = []
+            for i in self.content:
+                image = [f'=IMAGE("{i[0]}")'] + i[1:]
+                content_sheets.append(image)
+        else:
+            content_sheets = self.content
 
         # Write to Google Sheets. If the sheet exists, then new links get
         # appended. Otherwise, a new sheet is created and values are filled.
@@ -40,7 +46,7 @@ class DiscordMovies:
 
         if not handler.check_existence():
             handler.create_sheet(title=sheet_name)
-            handler.fill_sheet(self.content)
+            handler.fill_sheet(content_sheets)
 
         else:
             sheet = handler.get_doc_contents()
@@ -56,7 +62,8 @@ class DiscordMovies:
                        max_messages: int = 100,
                        tmdb_api_key: str = None):
         """
-        Takes all links from a discord channel and dumps them into a CSV file.
+        Takes all links from a discord channel, parses them,
+        and dumps them into a CSV file.
         """
         import csv
         import os

@@ -135,47 +135,70 @@ class Scrapper:
     @staticmethod
     def get_mal(content_id: int) -> list:
         """
-        Take MAL link and return metadata for that entry.
+        Take MAL link and return metadata for that entry. Uses jikan.moe.
         """
         import time
 
         # Rate limits yawn
-        time.sleep(0.35)
+        time.sleep(0.4)
+
         response = requests.get(f"https://api.jikan.moe/v4/anime/{content_id}")
 
         content = json.loads(response.content)["data"]
 
         genres = [i["name"] for i in content["genres"]]
+        if len(genres) > 1:
+            genres = ", ".join(genres)
+        else:
+            genres = genres[0]
 
-        return [str(content["images"]["jpg"]["image_url"]),
-                str([content["title_english"], content["title"]]),
-                str(genres), str(content["duration"]),
+        return [content["images"]["jpg"]["image_url"],
+                content["title_english"],
+                genres, str(content["duration"]),
                 str(content["trailer"]["url"]),
                 str(content["score"])]
 
     @staticmethod
     def get_imdb(content_id: int, omdb_api_key: str) -> list:
         """
-        Gets metadata from imdb given a link. Uses omdbapi.com.
+        Gets metadata from tmdb given an imdb link. Could
+        technically work with a lot more than just imdb.
         """
-        response = requests.get(f"https://api.themoviedb.org/3/find"
+
+        find_r = requests.get(f"https://api.themoviedb.org/3/find"
                                 f"/{content_id}?api_key={omdb_api_key}&"
                                 f"language=en-US&external_source=imdb_id")
 
-        omdb_id = json.loads(response.content)["movie_results"][0]["id"]
+        omdb_id = json.loads(find_r.content)["movie_results"][0]["id"]
 
 
-        response = requests.get(f"https://api.themoviedb.org/3/movie"
+        lookup_r = requests.get(f"https://api.themoviedb.org/3/movie"
                                 f"/{omdb_id}?api_key={omdb_api_key}")
 
-        content = json.loads(response.content)
+        config_r = requests.get(f"https://api.themoviedb.org/3/configuration"
+                                f"?api_key={omdb_api_key}")
 
-        if content["genres"] is not None:
-            genres = content["genres"].split(",")
+        video_r = requests.get(f"https://api.themoviedb.org/3/movie/{omdb_id}"
+                               f"/videos?api_key={omdb_api_key}")
+
+        videos = json.loads(video_r.content)["results"]
+        video = None
+        for i in videos:
+            if i["site"] == "YouTube":
+                video = "https://youtu.be/" + i["key"]
+                break
+
+        content = json.loads(lookup_r.content)
+        image_base = json.loads(config_r.content)["images"]["secure_base_url"]
+        image_size = json.loads(config_r.content)["images"]["poster_sizes"][4]
+
+        genres = [i["name"] for i in content["genres"]]
+        if len(genres) > 1:
+            genres = ", ".join(genres)
         else:
-            genres = content["genres"]
+            genres = genres[0]
 
-        return [str(content["image"]),
-                str([content["fullTitle"], content["originalTitle"]]),
-                str(genres), str(content["runtimeMins"]),
-                str(content["trailer"]), str(content["imDbRating"])]
+        return [image_base + image_size + content["poster_path"],
+                content["title"],
+                genres, content["runtime"],
+                video, str(content["vote_average"])]
