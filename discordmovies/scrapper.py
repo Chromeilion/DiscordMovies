@@ -140,7 +140,7 @@ class Scrapper:
         import time
 
         # Rate limits yawn
-        time.sleep(0.4)
+        time.sleep(0.5)
 
         response = requests.get(f"https://api.jikan.moe/v4/anime/{content_id}")
 
