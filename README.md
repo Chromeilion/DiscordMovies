@@ -22,6 +22,10 @@ For this you need to:
 
 After this you should be set up. When running the program it will ask for access to your Google Sheets and create a token.json file with your specific user token.
 
+## TMDB API Key
+In order to get metadata, the program needs a TMDB API key. This can be found [here](https://developers.themoviedb.org/3/getting-started/introduction).
+The key can be passed as an environment variable or as a command line argument.
+
 ## Optional .env
 if you'd like to use a .env file instead of keeping all the keys in different files, just copy-paste the contents from credentials.json into the .env file. The variable name is "GOOGLE_APP_CREDENTIALS" and the json contents should be surrounded in single quotes. After adding it to .env, either remove credentials.json or rename it.
 
@@ -46,7 +50,7 @@ python DiscordMovies.py
 Python 3.8 is the only officially supported version, however it'll probably run fine on other versions.
 
 There are a few ways to specify what the program should do. I recommend running ```python DiscordMovies.py --help``` to see the options.
-All options can also be set as environment variables. Take a look at template.env to see what variables can be set.
+All options can also be set as environment variables. Take a look at env.example to see what variables can be set.
 
 # Contributing
 Anybody is welcome to contribute. Simply fork the repo and make a pull request.
