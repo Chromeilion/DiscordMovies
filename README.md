@@ -1,14 +1,15 @@
 # discordmovies
-A script that goes through a discord channel, extracts links, and creates a google sheets sheet for them or saves them to a CSV.
+A script that goes through a discord channel with movie links in it. It extracts the links from discord, gets metadata for each movie, and creates a Google Sheets file or CSV file.
 
 Useful if you run movie nights where people request stuff through discord, and would like to automate the process of collecting requests.
 
-The program is currently in a pretty basic state, where all it does is extract links. Some ideas on how to improve it:
+While the program currently has most necessary features, there's still a lot of polish to be done. Specifically:
 - Check if link is actually to a movie site
-- Extract movie title from the website linked
 - Group links by movie title
-- Extract movie art and other metadata from links
 - Store names of users who suggested the film
+- General code quality
+- A progress bar
+- Better API rate limit handling
 
 # Setting up
 ## Google Sheets
