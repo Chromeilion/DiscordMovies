@@ -105,23 +105,26 @@ class DiscordMovies:
         if os.path.exists(csv_name):
             print("CSV file exists, assuming correct formatting and appending "
                   "new values.")
-            with open(csv_name, "r+") as f:
+            titles = [i[1] for i in self.content]
+            dupes = []
+            with open(csv_name, "r+", newline="") as f:
                 for i in csv.reader(f):
-                    if len(i) > 0 and i != ['url']:
-                        if ast.literal_eval(i[0]) in self.content:
-                            self.content.remove(ast.literal_eval(i[0]))
+                    if i[1] in titles:
+                        dupes.append(i[1])
+
+                self.content = [i for i in self.content if i[1] not in dupes]
 
                 writer = csv.writer(f)
                 for i in self.content:
-                    writer.writerow([i])
+                    writer.writerow(i)
         else:
             print("No CSV file found, creating new one.")
-            with open(csv_name, "w") as f:
+            with open(csv_name, "w", newline="") as f:
                 writer = csv.writer(f)
-                writer.writerow(["url"])
+                writer.writerow(self.categories)
 
                 for i in self.content:
-                    writer.writerow([i])
+                    writer.writerow(i)
 
     def get_links(self, channel_id: Union[str, int], max_messages: int = 100,
                   tmdb_api_key: str = None):
@@ -152,6 +155,7 @@ class DiscordMovies:
         """
         Format a sheet correctly.
         """
+
         handler.adjust_row_height(row_height)
         handler.adjust_row_height(height=first_row_height, start_row=0,
                                   end_row=1)
