@@ -50,7 +50,7 @@ python DiscordMovies.py
 Python 3.8 is the only officially supported version, however it'll probably run fine on other versions.
 
 There are a few ways to specify what the program should do. I recommend running ```python DiscordMovies.py --help``` to see the options.
-All options can also be set as environment variables. Take a look at template.env to see what variables can be set.
+All options can also be set as environment variables. Take a look at env.example to see what variables can be set.
 
 # Contributing
 Anybody is welcome to contribute. Simply fork the repo and make a pull request.
