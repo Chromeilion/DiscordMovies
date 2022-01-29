@@ -10,13 +10,13 @@ class DiscordMovies:
     or exported to a CSV.
     """
 
-    def __init__(self, discord_auth_token: Union[str, int], bot: bool = True,
-                 row_height: int = 148):
+    def __init__(self, discord_auth_token: Union[str, int], bot: bool = True):
         self.auth_token = discord_auth_token
         self.scrapper = Scrapper()
         self.content = []
         self.bot = bot
-        self.row_height = row_height
+        self.categories = ["Poster", "Title", "Genre", "Runtime", "Trailer",
+                             "User Score", "Link"]
 
     def discord_to_sheets(self, channel_id: Union[str, int],
                           sheet_id: Union[str, int] = None,
@@ -30,14 +30,16 @@ class DiscordMovies:
         """
         from discordmovies.docshandler import DocsHandler
 
-        # Check if links have already been calculated.
+        # Check if links have already been calculated and calculate them if not.
         if len(self.content) == 0:
             self.get_links(channel_id=channel_id, max_messages=max_messages,
                            tmdb_api_key=tmdb_api_key)
-            content_sheets = []
-            for i in self.content:
+
+            content_sheets = [self.categories]
+            for i in self.content[1:]:
                 image = [f'=IMAGE("{i[0]}")'] + i[1:]
                 content_sheets.append(image)
+
         else:
             content_sheets = self.content
 
@@ -48,18 +50,34 @@ class DiscordMovies:
 
         if not handler.check_existence():
             handler.create_sheet(title=sheet_name)
+            self.format_sheet(handler=handler)
             handler.fill_sheet(content_sheets)
-            handler.adjust_row_height(self.row_height)
 
         else:
             sheet = handler.get_doc_contents()
 
-            for i in sheet["values"]:
-                if i in self.content:
-                    self.content.remove(i)
+            content_sheets = [self.categories]
+            for i in self.content:
+                image = [f'=IMAGE("{i[0]}")'] + i[1:]
+                content_sheets.append(image)
 
-            handler.append_sheet(self.content)
-            handler.adjust_row_height(self.row_height)
+            try:
+                values = sheet["values"]
+            except KeyError:
+                values = None
+
+            if values is not None:
+                dupes = []
+                names = [i[1] for i in content_sheets]
+                for i in values:
+                    if i[1] in names:
+                        dupes.append(i[1])
+
+                content_sheets = [i for i in content_sheets if i[1]
+                                  not in dupes]
+
+            self.format_sheet(handler=handler)
+            handler.append_sheet(content_sheets)
 
     def discord_to_csv(self, channel_id: Union[str, int],
                        csv_name: str = "DiscordMovies",
@@ -124,7 +142,17 @@ class DiscordMovies:
         links = Parser.extract_links(messages)
 
         # Create list with all links and metadata
-        self.content = []
         for i in links:
             metadata = self.scrapper.get_metadata(i, tmdb_api_key)
             self.content.append(metadata)
+
+    @staticmethod
+    def format_sheet(handler, row_height: int = 148,
+                     first_row_height: int = 30):
+        """
+        Format a sheet correctly.
+        """
+        handler.adjust_row_height(row_height)
+        handler.adjust_row_height(height=first_row_height, start_row=0,
+                                  end_row=1)
+        handler.set_alignment()

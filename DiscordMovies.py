@@ -43,7 +43,10 @@ args = parser.parse_args()
 
 load_dotenv()
 
-if not args.output:
+sheet_outs = ["sheet", "all"]
+csv_outs = ["csv", "all"]
+
+if args.output is None:
     if "OUTPUT_TYPE" in os.environ:
         output = os.environ["OUTPUT_TYPE"]
         if output not in ["sheet", "csv", "all"]:
@@ -84,7 +87,7 @@ if not args.channel_id:
 else:
     channel_id = args.channel_id
 
-if not args.google_sheets_id and args.output == "sheets":
+if args.google_sheets_id is None and output in sheet_outs:
     if "GOOGLE_SHEETS_ID" in os.environ:
         sheet_id = os.environ["GOOGLE_SHEETS_ID"]
         print("Google Sheets ID loaded from environment.")
@@ -114,7 +117,7 @@ else:
 filename = args.filename
 max_messages = args.max_messages
 
-if output == "sheet" or output == "all":
+if output in sheet_outs:
     discordmovies.DiscordMovies(discord_auth_token=token,
                                 bot=bot).discord_to_sheets(
         channel_id=channel_id,
@@ -123,7 +126,7 @@ if output == "sheet" or output == "all":
         max_messages=max_messages,
         tmdb_api_key=tmdb_api_key)
 
-if output == "csv" or output == "all":
+if output in csv_outs:
     discordmovies.DiscordMovies(discord_auth_token=token,
                                 bot=bot).discord_to_csv(
         channel_id=channel_id,

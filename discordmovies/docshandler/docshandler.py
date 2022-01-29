@@ -61,6 +61,7 @@ class DocsHandler:
         Inserts contents into the body of a sheet. Input should be a list
         of lists with each list being a row.
         """
+
         data = [
             {"range": "A:Z",
              "values": inputs}
@@ -89,10 +90,15 @@ class DocsHandler:
             self.service.spreadsheets().get(
                 spreadsheetId=sheet_id).execute()
         except googleapiclient.errors.HttpError:
+            print("Sheet ID specified, but not found.")
             return False
         return True
 
     def append_sheet(self, values):
+        """
+        Append a list of values to a sheet.
+        """
+
         body = {
             'values': values
         }
@@ -103,7 +109,8 @@ class DocsHandler:
                                            .get('updates')
                                            .get('updatedCells')))
 
-    def adjust_row_height(self, height):
+    def adjust_row_height(self, height: int, start_row: int = None,
+                          end_row: int = None):
         """
         Changes height of all rows to value given.
         """
@@ -113,6 +120,8 @@ class DocsHandler:
                 "updateDimensionProperties": {
                     "range": {
                         "dimension": "ROWS",
+                        "startIndex": start_row,
+                        "endIndex": end_row
                     },
                     "properties": {
                         "pixelSize": height
@@ -127,6 +136,37 @@ class DocsHandler:
             'requests': requests
         }
 
-        response = self.service.spreadsheets().batchUpdate(
+        self.service.spreadsheets().batchUpdate(
+            spreadsheetId=self.spreadsheet_id,
+            body=body).execute()
+
+    def set_alignment(self, hor_alignment: str = "CENTER",
+                      ver_alignment: str = "MIDDLE", wrap: str = "WRAP"):
+        """
+        Sets the formatting of cells.
+        """
+
+        requests = [
+            {
+                "repeatCell": {
+                    "cell": {
+                        "userEnteredFormat": {
+                            "verticalAlignment": ver_alignment,
+                            "horizontalAlignment": hor_alignment,
+                            "wrapStrategy": wrap
+                        }
+                    },
+                    "range": {
+                    },
+                    "fields": "userEnteredFormat"
+                }
+            }
+        ]
+
+        body = {
+            'requests': requests
+        }
+
+        self.service.spreadsheets().batchUpdate(
             spreadsheetId=self.spreadsheet_id,
             body=body).execute()

@@ -152,8 +152,13 @@ class Scrapper:
         else:
             genres = genres[0]
 
+        if content["title_english"] is None:
+            title = content["title"]
+        else:
+            title = content["title_english"]
+
         return [content["images"]["jpg"]["image_url"],
-                content["title_english"],
+                title,
                 genres, str(content["duration"]),
                 str(content["trailer"]["url"]),
                 str(content["score"])]
