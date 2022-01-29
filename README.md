@@ -22,6 +22,10 @@ For this you need to:
 
 After this you should be set up. When running the program it will ask for access to your Google Sheets and create a token.json file with your specific user token.
 
+## TMDB API Key
+In order to get metadata, the program needs a TMDB API key. This can be found [here](https://developers.themoviedb.org/3/getting-started/introduction).
+The key can be passed as an environment variable or as a command line argument.
+
 ## Optional .env
 if you'd like to use a .env file instead of keeping all the keys in different files, just copy-paste the contents from credentials.json into the .env file. The variable name is "GOOGLE_APP_CREDENTIALS" and the json contents should be surrounded in single quotes. After adding it to .env, either remove credentials.json or rename it.
 
