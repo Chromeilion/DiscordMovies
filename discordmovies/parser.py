@@ -33,6 +33,7 @@ class Parser:
 
         url_parsed = urlparse(link)
         path_split = url_parsed.path.split("/")
+        content_id = None
 
         if url_parsed.hostname in ["anilist.co", "myanimelist.net"]:
             for i, j in enumerate(path_split):
@@ -45,7 +46,21 @@ class Parser:
                     content_id = path_split[i+1]
                     break
 
-        else:
-            content_id = None
-
         return url_parsed.hostname, content_id
+
+    @staticmethod
+    def check_duplicates(links: list) -> dict:
+        """
+        Takes a list and finds all duplicates. Returns a dictionary with the
+        indexes for each item. If there are multiple occurrences of that item
+        there will be multiple indexes.
+        The list should ideally contain strings.
+        """
+        from collections import defaultdict
+
+        dupes = defaultdict(list)
+
+        for i, item in enumerate(links):
+            dupes[item].append(i)
+
+        return dupes

@@ -16,7 +16,7 @@ class DiscordMovies:
         self.content = []
         self.bot = bot
         self.categories = ["Poster", "Title", "Genre", "Runtime", "Trailer",
-                             "User Score", "Link"]
+                           "User Score", "Link"]
 
     def discord_to_sheets(self, channel_id: Union[str, int],
                           sheet_id: Union[str, int] = None,
@@ -89,7 +89,6 @@ class DiscordMovies:
         """
         import csv
         import os
-        import ast
 
         # Check name provided
         if csv_name[:-3] != ".csv":
@@ -149,6 +148,10 @@ class DiscordMovies:
             metadata = self.scrapper.get_metadata(i, tmdb_api_key)
             self.content.append(metadata)
 
+        self.handle_duplicates()
+
+
+
     @staticmethod
     def format_sheet(handler, row_height: int = 148,
                      first_row_height: int = 30):
@@ -160,3 +163,21 @@ class DiscordMovies:
         handler.adjust_row_height(height=first_row_height, start_row=0,
                                   end_row=1)
         handler.set_alignment()
+
+    def handle_duplicates(self):
+        """
+        Checks for duplicate links, and if it finds them, combines them into
+        one entry where applicable.
+        """
+
+        titles = []
+
+        for i in self.content:
+            titles.append(i[1])
+        duplicates = Parser().check_duplicates(titles)
+
+        for i in duplicates:
+            if len(i) > 1:
+                for j, k in enumerate(self.content[i]):
+                    if k[j] != i[j]:
+                        k[j] = zip(k[j], i[j])
