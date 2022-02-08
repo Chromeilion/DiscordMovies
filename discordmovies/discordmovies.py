@@ -128,7 +128,8 @@ class DiscordMovies:
     def get_links(self, channel_id: Union[str, int], max_messages: int = 100,
                   tmdb_api_key: str = None):
         """
-        Gets messages and parses them, returning links and metadata.
+        Gets messages and parses them, then it gets rid of duplicates.
+        The output goes into self.content
         """
 
         # Check whether links have already been calculated and skip a few
@@ -150,8 +151,6 @@ class DiscordMovies:
 
         self.handle_duplicates()
 
-
-
     @staticmethod
     def format_sheet(handler, row_height: int = 148,
                      first_row_height: int = 30):
@@ -170,14 +169,25 @@ class DiscordMovies:
         one entry where applicable.
         """
 
-        titles = []
+        titles = [i[1] for i in self.content]
 
-        for i in self.content:
-            titles.append(i[1])
         duplicates = Parser().check_duplicates(titles)
 
+        removal_list = []
+
         for i in duplicates:
-            if len(i) > 1:
-                for j, k in enumerate(self.content[i]):
-                    if k[j] != i[j]:
-                        k[j] = zip(k[j], i[j])
+            if len(duplicates[i]) > 1:
+                dupes_minus_min = duplicates[i].remove(min(duplicates[i]))
+                removal_list += dupes_minus_min
+                content = self.content[min(duplicates[i])]
+
+                for j in dupes_minus_min:
+                    for k, m in enumerate(self.content[j]):
+                        if m not in content[k]:
+                            content[k] += f",\n{m}"
+
+        if len(removal_list) > 0:
+            removal_list.sort(reverse=True)
+
+            for i in removal_list:
+                del self.content[i]
