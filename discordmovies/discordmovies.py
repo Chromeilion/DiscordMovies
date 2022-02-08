@@ -16,7 +16,7 @@ class DiscordMovies:
         self.content = []
         self.bot = bot
         self.categories = ["Poster", "Title", "Genre", "Runtime", "Trailer",
-                             "User Score", "Link"]
+                           "User Score", "Link"]
 
     def discord_to_sheets(self, channel_id: Union[str, int],
                           sheet_id: Union[str, int] = None,
@@ -89,7 +89,6 @@ class DiscordMovies:
         """
         import csv
         import os
-        import ast
 
         # Check name provided
         if csv_name[:-3] != ".csv":
@@ -129,7 +128,8 @@ class DiscordMovies:
     def get_links(self, channel_id: Union[str, int], max_messages: int = 100,
                   tmdb_api_key: str = None):
         """
-        Gets messages and parses them, returning links and metadata.
+        Gets messages and parses them, then it gets rid of duplicates.
+        The output goes into self.content
         """
 
         # Check whether links have already been calculated and skip a few
@@ -149,6 +149,8 @@ class DiscordMovies:
             metadata = self.scrapper.get_metadata(i, tmdb_api_key)
             self.content.append(metadata)
 
+        self.handle_duplicates()
+
     @staticmethod
     def format_sheet(handler, row_height: int = 148,
                      first_row_height: int = 30):
@@ -160,3 +162,38 @@ class DiscordMovies:
         handler.adjust_row_height(height=first_row_height, start_row=0,
                                   end_row=1)
         handler.set_alignment()
+
+    def handle_duplicates(self):
+        """
+        Checks for duplicate entries, and if it finds them, combines them into
+        one entry where applicable. Quite basic currently, however, Any kind of
+        improvement would come at the cost of flexibility.
+        """
+
+        titles = [i[1] for i in self.content]
+
+        # Get list of duplicates
+        duplicates = Parser().check_duplicates(titles)
+
+        removal_list = []
+
+        # Iterate through the duplicates and merge them into one entry.
+        # Duplicates don't get deleted here, because it would mess up the
+        # indexing.
+        for i in duplicates:
+            if len(duplicates[i]) > 1:
+                dupes_minus_min = duplicates[i].remove(min(duplicates[i]))
+                removal_list += dupes_minus_min
+                content = self.content[min(duplicates[i])]
+
+                for j in dupes_minus_min:
+                    for k, m in enumerate(self.content[j]):
+                        if m not in content[k]:
+                            content[k] += f",\n{m}"
+
+        # Now we remove duplicates if there are any.
+        if len(removal_list) > 0:
+            removal_list.sort(reverse=True)
+
+            for i in removal_list:
+                del self.content[i]

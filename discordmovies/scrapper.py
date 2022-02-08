@@ -133,16 +133,30 @@ class Scrapper:
         return self.get_mal(response_loaded["data"]["Media"]["idMal"])
 
     @staticmethod
-    def get_mal(content_id: int) -> list:
+    def get_mal(content_id: int, sleep_time: float = 0.5) -> list:
         """
         Take MAL link and return metadata for that entry. Uses jikan.moe.
         """
         import time
 
         # Rate limits yawn
-        time.sleep(0.5)
-
+        time.sleep(sleep_time)
         response = requests.get(f"https://api.jikan.moe/v4/anime/{content_id}")
+        sleep_time += 0.965
+
+        while response.status_code == 429 and sleep_time < 24:
+            # Try again in a bit in case of more severe rate limiting.
+            sleep_time = sleep_time**2
+            time.sleep(sleep_time)
+
+            response = requests.get(f"https://api.jikan.moe/v4/anime/{content_id}")
+
+        if response.status_code == 429:
+            # This should theoretically never happen.
+            raise ConnectionError("Jikan seems to be rate limiting more "
+                                  "than it should. Try rerunning the "
+                                  "program. If that doesn't fix it try "
+                                  "again later.")
 
         content = json.loads(response.content)["data"]
 
