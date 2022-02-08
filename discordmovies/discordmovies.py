@@ -165,16 +165,21 @@ class DiscordMovies:
 
     def handle_duplicates(self):
         """
-        Checks for duplicate links, and if it finds them, combines them into
-        one entry where applicable.
+        Checks for duplicate entries, and if it finds them, combines them into
+        one entry where applicable. Quite basic currently, however, Any kind of
+        improvement would come at the cost of flexibility.
         """
 
         titles = [i[1] for i in self.content]
 
+        # Get list of duplicates
         duplicates = Parser().check_duplicates(titles)
 
         removal_list = []
 
+        # Iterate through the duplicates and merge them into one entry.
+        # Duplicates don't get deleted here, because it would mess up the
+        # indexing.
         for i in duplicates:
             if len(duplicates[i]) > 1:
                 dupes_minus_min = duplicates[i].remove(min(duplicates[i]))
@@ -186,6 +191,7 @@ class DiscordMovies:
                         if m not in content[k]:
                             content[k] += f",\n{m}"
 
+        # Now we remove duplicates if there are any.
         if len(removal_list) > 0:
             removal_list.sort(reverse=True)
 
