@@ -5,11 +5,9 @@ Useful if you run movie nights where people request stuff through discord, and w
 
 While the program currently has most necessary features, there's still a lot of polish to be done. Specifically:
 - Check if link is actually to a movie site
-- Group links by movie title
 - Store names of users who suggested the film
 - General code quality
 - A progress bar
-- Better API rate limit handling
 
 # Setting up
 ## Google Sheets
