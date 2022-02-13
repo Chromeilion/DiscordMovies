@@ -8,6 +8,7 @@ While the program currently has most necessary features, there's still a lot of 
 - Store names of users who suggested the film
 - General code quality
 - A progress bar
+- Avoid unnecessary API calls by removing entries already present within an existant CSV/sheet before extracting metadata
 
 # Setting up
 ## Google Sheets
