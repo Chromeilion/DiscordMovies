@@ -157,6 +157,13 @@ class Scrapper:
                                   "than it should. Try rerunning the "
                                   "program. If that doesn't fix it try "
                                   "again later.")
+        elif response.status_code != 200:
+            raise ConnectionError(f"Somethings wrong with Jikan. Specifically, it didn't return a 200 status code. "
+                                  f"Here's some info about the response: \n "
+                                  f"status code: {response.status_code} \n"
+                                  f"response content: {response.content} \n"
+                                  f"reason: {response.reason} \n"
+                                  f"url: {response.url}")
 
         content = json.loads(response.content)["data"]
 
