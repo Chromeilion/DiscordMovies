@@ -1,8 +1,10 @@
+import json
+import os.path
+
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
-import os.path
-import json
+from google.auth.exceptions import RefreshError
 
 
 class Creds:
@@ -73,7 +75,14 @@ class Creds:
 
         if not self.creds or not self.creds.valid:
             if self.creds and self.creds.expired and self.creds.refresh_token:
-                self.creds.refresh(Request())
+                try:
+                    self.creds.refresh(Request())
+                except RefreshError as e:
+                    raise RefreshError("Unable to refresh user token. Try deleting the user token and then recreating "
+                                       "it. This could be caused by having the Google project OAuth publishing status "
+                                       "set to 'testing' try setting it to 'in production', this makes it so that "
+                                       "tokens don't expire.") from e
+
             else:
                 if os.path.exists('credentials.json'):
                     flow = InstalledAppFlow.from_client_secrets_file(
