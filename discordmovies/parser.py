@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 
 class Parser:
     """
-    A class that contains functions for parsing Discord messages.
+    A class that contains functions for parsing Discord messages and movie links.
     """
 
     @staticmethod
@@ -20,7 +20,7 @@ class Parser:
                                     str(j["content"]))
                 if re_obj:
                     for k in re_obj:
-                        links.append(k)
+                        links.append((k, j['author']['username']))
         return links
 
     @staticmethod
@@ -39,6 +39,7 @@ class Parser:
             for i, j in enumerate(path_split):
                 if j == "anime":
                     content_id = path_split[i+1]
+                    break
 
         elif url_parsed.hostname in ["www.imdb.com", "m.imdb.com"]:
             for i, j in enumerate(path_split):

@@ -5,7 +5,6 @@ Useful if you run movie nights where people request stuff through discord, and w
 
 While the program currently has most necessary features, there's still a lot of polish to be done. Specifically:
 - Check if link is actually to a movie site
-- Store names of users who suggested the film
 - General code quality
 - A progress bar
 - Avoid unnecessary API calls by removing entries already present within an existant CSV/sheet before extracting metadata

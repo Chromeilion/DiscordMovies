@@ -13,10 +13,10 @@ class DiscordMovies:
     def __init__(self, discord_auth_token: Union[str, int], bot: bool = True):
         self.auth_token = discord_auth_token
         self.scrapper = Scrapper()
-        self.content = []
+        self.content = None
         self.bot = bot
         self.categories = ["Poster", "Title", "Genre", "Runtime", "Trailer",
-                           "User Score", "Link"]
+                           "User Score", "Link", "User"]
 
     def discord_to_sheets(self, channel_id: Union[str, int],
                           sheet_id: Union[str, int] = None,
@@ -31,7 +31,7 @@ class DiscordMovies:
         from discordmovies.docshandler import DocsHandler
 
         # Check if links have already been calculated and calculate them if not.
-        if len(self.content) == 0:
+        if self.content is None:
             self.get_links(channel_id=channel_id, max_messages=max_messages,
                            tmdb_api_key=tmdb_api_key)
 
@@ -40,8 +40,11 @@ class DiscordMovies:
                 image = [f'=IMAGE("{i[0]}")'] + i[1:]
                 content_sheets.append(image)
 
-        else:
+        elif type(self.content) == "list":
             content_sheets = self.content
+
+        else:
+            raise ValueError("self.content should be of type 'list' or 'None', it is neither.")
 
         # Write to Google Sheets. If the sheet exists, then new links get
         # appended. Otherwise, a new sheet is created and values are filled.
@@ -132,9 +135,6 @@ class DiscordMovies:
         The output goes into self.content
         """
 
-        # Check whether links have already been calculated and skip a few
-        # steps if they have.
-
         # Get all messages from channel
         messages = self.scrapper.get_messages(channel_id=channel_id,
                                               auth=self.auth_token,
@@ -144,9 +144,16 @@ class DiscordMovies:
         # Extract all links from messages
         links = Parser.extract_links(messages)
 
+        self.content = []
+
         # Create list with all links and metadata
         for i in links:
-            metadata = self.scrapper.get_metadata(i, tmdb_api_key)
+            metadata = self.scrapper.get_metadata(i[0], tmdb_api_key)
+
+            if not metadata:
+                print(f"Failed to find metadata for {i}, skipping.")
+                continue
+            [metadata.append(j) for j in i[1::]]
             self.content.append(metadata)
 
         self.handle_duplicates()
