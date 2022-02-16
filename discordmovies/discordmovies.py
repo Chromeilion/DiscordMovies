@@ -1,11 +1,11 @@
 from discordmovies.parser import Parser
 from discordmovies.scrapper import Scrapper
 from typing import Union
-
+from exceptions import MovieIdentityError
 
 class DiscordMovies:
     """
-    A package for going through a discord movie recommendations channel and
+    A class for going through a discord movie recommendations channel and
     extracting all links. These links can then be uploaded to Google Sheets
     or exported to a CSV.
     """
@@ -131,8 +131,8 @@ class DiscordMovies:
     def get_links(self, channel_id: Union[str, int], max_messages: int = 100,
                   tmdb_api_key: str = None):
         """
-        Gets messages and parses them, then it gets rid of duplicates.
-        The output goes into self.content
+        Gets messages and parses them, then it gets rid of duplicates and non-movie links.
+        The output goes into self.content.
         """
 
         # Get all messages from channel
@@ -148,11 +148,12 @@ class DiscordMovies:
 
         # Create list with all links and metadata
         for i in links:
-            metadata = self.scrapper.get_metadata(i[0], tmdb_api_key)
-
-            if not metadata:
+            try:
+                metadata = self.scrapper.get_metadata(i[0], tmdb_api_key)
+            except MovieIdentityError:
                 print(f"Failed to find metadata for {i}, skipping.")
                 continue
+
             [metadata.append(j) for j in i[1::]]
             self.content.append(metadata)
 

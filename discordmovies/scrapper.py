@@ -1,5 +1,7 @@
 import requests
 import json
+
+from exceptions import MovieIdentityError
 from typing import Union
 from discordmovies.parser import Parser
 
@@ -75,13 +77,13 @@ class Scrapper:
         Takes a link from a supported website and returns a list containing
         the metadata for the film/series.
         The list is in the order: [Image, Name, Genre, Length, Trailer, Score]
-        If metadata cannot be found, returns None.
+        If metadata cannot be found, raises MovieIdentityError.
         """
 
         site_info = Parser.identify(link)
 
         if site_info[1] is None:
-            return [None, None, None, site_info[1]]
+            raise MovieIdentityError
 
         elif site_info[0] == "anilist.co":
             return self.get_anilist(site_info[1]) + [link]
@@ -157,6 +159,8 @@ class Scrapper:
                                   "than it should. Try rerunning the "
                                   "program. If that doesn't fix it try "
                                   "again later.")
+        elif response.status_code == 404:
+            raise MovieIdentityError(f"Jikan returned a 404 not found error for movie with ID: {content_id}")
         elif response.status_code != 200:
             raise ConnectionError(f"Somethings wrong with Jikan. Specifically, it didn't return a 200 status code. "
                                   f"Here's some info about the response: \n "
@@ -194,6 +198,16 @@ class Scrapper:
         find_r = requests.get(f"https://api.themoviedb.org/3/find"
                                 f"/{content_id}?api_key={omdb_api_key}&"
                                 f"language=en-US&external_source=imdb_id")
+
+        if find_r.status_code == 404:
+            raise MovieIdentityError(f"Could not find IMDB movie with ID: {content_id}")
+        if find_r.status_code != 200:
+            raise ConnectionError("Something went wrong when trying to access TMDB. Here are the details about the "
+                                  "response:"
+                                  f"status code: {find_r.status_code} \n"
+                                  f"response content: {find_r.content} \n"
+                                  f"reason: {find_r.reason} \n"
+                                  f"url: {find_r.url}")
 
         omdb_id = json.loads(find_r.content)["movie_results"][0]["id"]
 
