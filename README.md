@@ -6,7 +6,6 @@ Useful if you run movie nights where people request stuff through discord, and w
 While the program currently has most necessary features, there's still a lot of polish to be done. Specifically:
 - General code quality
 - A progress bar
-- Avoid unnecessary API calls by removing entries already present within an existant CSV/sheet before extracting metadata
 
 # Setting up
 ## Google Sheets
