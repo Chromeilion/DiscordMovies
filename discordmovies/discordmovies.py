@@ -171,13 +171,16 @@ class DiscordMovies:
                                   end_row=1)
         handler.set_alignment()
 
-    def handle_duplicates(self, ignore: list = ["Poster", "Title", "Runtime", "Trailer", "User Score"]):
+    def handle_duplicates(self, ignore=None):
         """
         Checks for duplicate entries, and if it finds them, combines them into one entry where applicable.
         Optionally a variable "ignore" can be passed. This should be a list of columns that should be ignored when
         combining duplicates. What this means is that when combining duplicates, only the first value in the ignored
         column will stay and all duplicate values will be deleted.
         """
+
+        if ignore is None:
+            ignore = ["Poster", "Title", "Runtime", "Trailer", "User Score"]
 
         titles = [i[self.scrapper.get_columns()["Title"]] for i in self.content]
 
