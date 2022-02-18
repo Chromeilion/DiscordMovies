@@ -257,8 +257,6 @@ class Scrapper:
     def compose_list(self, attributes: dict) -> list:
         """
         Takes a dictionary with movie attributes and maps them to a list using indices from self.columns.
-        :param attributes:
-        :return:
         """
         sorted_categories = sorted(self.columns.items(), key=lambda item: item[1])
 
