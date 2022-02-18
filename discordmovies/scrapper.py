@@ -24,6 +24,9 @@ class Scrapper:
                         "Trailer": 4,
                         "User Score": 5}
 
+    def get_sorted_columns(self):
+        return sorted(self.columns.items(), key=lambda item: item[1])
+
     def check_token(self):
         r = requests.get(f"https://discordapp.com/api/v9/users/@me",
                          headers=self.headers)
@@ -258,7 +261,7 @@ class Scrapper:
         """
         Takes a dictionary with movie attributes and maps them to a list using indices from self.columns.
         """
-        sorted_categories = sorted(self.columns.items(), key=lambda item: item[1])
+        sorted_categories = self.get_sorted_columns()
 
         cat_list = []
         for i in sorted_categories:
