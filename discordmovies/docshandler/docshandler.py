@@ -170,3 +170,14 @@ class DocsHandler:
         self.service.spreadsheets().batchUpdate(
             spreadsheetId=self.spreadsheet_id,
             body=body).execute()
+
+    def format_sheet(self, row_height: int = 148,
+                     first_row_height: int = 30):
+        """
+        Format a sheet to make it look pretty.
+        """
+
+        self.adjust_row_height(row_height)
+        self.adjust_row_height(height=first_row_height, start_row=0,
+                               end_row=1)
+        self.set_alignment()

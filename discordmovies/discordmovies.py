@@ -80,7 +80,7 @@ class DiscordMovies:
                 content_sheets = [i for i in content_sheets if i[1]
                                   not in dupes]
 
-            self.format_sheet(handler=handler)
+            handler.format_sheet()
             handler.append_sheet(content_sheets)
 
     def discord_to_csv(self, channel_id: Union[str, int],
@@ -147,6 +147,7 @@ class DiscordMovies:
 
         self.content = []
         failures = []
+
         # Create list with all links and metadata
         for i in tqdm(links, unit=" movies", desc="gathering metadata"):
             try:
@@ -158,22 +159,12 @@ class DiscordMovies:
             [metadata.append(j) for j in i[1::]]
             self.content.append(metadata)
 
-        print("The following movies were not found:")
-        print('\n'.join(map(str, failures)))
+        # Print failures if there are any.
+        if len(failures) > 0:
+            print("The following movies were not found:")
+            print('\n'.join(map(str, failures)))
 
         self.handle_duplicates()
-
-    @staticmethod
-    def format_sheet(handler, row_height: int = 148,
-                     first_row_height: int = 30):
-        """
-        Format a sheet correctly.
-        """
-
-        handler.adjust_row_height(row_height)
-        handler.adjust_row_height(height=first_row_height, start_row=0,
-                                  end_row=1)
-        handler.set_alignment()
 
     def handle_duplicates(self, ignore: list = None):
         """

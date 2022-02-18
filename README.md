@@ -3,10 +3,6 @@ A script that goes through a discord channel with movie links in it. It extracts
 
 Useful if you run movie nights where people request stuff through discord, and would like to automate the process of collecting requests.
 
-While the program currently has most necessary features, there's still a lot of polish to be done. Specifically:
-- General code quality
-- A progress bar
-
 # Setting up
 ## Google Sheets
 If you want to generate a google sheets document, you'll need to set up some Google API keys.
