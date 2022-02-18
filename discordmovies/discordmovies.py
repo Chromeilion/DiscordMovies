@@ -171,7 +171,7 @@ class DiscordMovies:
                                   end_row=1)
         handler.set_alignment()
 
-    def handle_duplicates(self, ignore=None):
+    def handle_duplicates(self, ignore: list = None):
         """
         Checks for duplicate entries, and if it finds them, combines them into one entry where applicable.
         Optionally a variable "ignore" can be passed. This should be a list of columns that should be ignored when
