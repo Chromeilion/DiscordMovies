@@ -1,7 +1,7 @@
 from discordmovies.parser import Parser
 from discordmovies.scrapper import Scrapper
 from typing import Union
-from exceptions import MovieIdentityError
+from discordmovies.exceptions import MovieIdentityError
 
 class DiscordMovies:
     """
@@ -98,7 +98,7 @@ class DiscordMovies:
             csv_name = csv_name + ".csv"
 
         # Check if links have already been calculated.
-        if len(self.content) == 0:
+        if self.content is None:
             self.get_links(channel_id=channel_id, max_messages=max_messages,
                            tmdb_api_key=tmdb_api_key)
 
@@ -190,14 +190,14 @@ class DiscordMovies:
         # indexing.
         for i in duplicates:
             if len(duplicates[i]) > 1:
-                dupes_minus_min = duplicates[i].remove(min(duplicates[i]))
+                minimum_dupe = min(duplicates[i])
+                dupes_minus_min = [n for n in duplicates[i] if n != min(duplicates[i])]
                 removal_list += dupes_minus_min
-                content = self.content[min(duplicates[i])]
 
                 for j in dupes_minus_min:
-                    for k, m in enumerate(self.content[j]):
-                        if m not in content[k]:
-                            content[k] += f",\n{m}"
+                    for k, m in enumerate(self.content[minimum_dupe]):
+                        if self.content[j][k] not in m:
+                            self.content[minimum_dupe][k] += f"\n{self.content[j][k]}"
 
         # Now we remove duplicates if there are any.
         if len(removal_list) > 0:

@@ -1,7 +1,7 @@
 import requests
 import json
 
-from exceptions import MovieIdentityError
+from discordmovies.exceptions import MovieIdentityError
 from typing import Union
 from discordmovies.parser import Parser
 
@@ -240,5 +240,5 @@ class Scrapper:
 
         return [image_base + image_size + content["poster_path"],
                 content["title"],
-                genres, content["runtime"],
+                genres, str(content["runtime"]),
                 video, str(content["vote_average"])]
