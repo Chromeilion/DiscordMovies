@@ -22,9 +22,13 @@ class Scrapper:
                         "Genres": 2,
                         "Runtime": 3,
                         "Trailer": 4,
-                        "User Score": 5}
+                        "User Score": 5,
+                        "ID": 6}
 
-    def get_sorted_columns(self):
+    def get_columns(self) -> dict:
+        return self.columns
+
+    def get_sorted_columns(self) -> list:
         return sorted(self.columns.items(), key=lambda item: item[1])
 
     def check_token(self):
@@ -196,7 +200,8 @@ class Scrapper:
                        "Genres": genres,
                        "Runtime": str(content["duration"]),
                        "Trailer": str(content["trailer"]["url"]),
-                       "User Score": str(content["score"])}
+                       "User Score": str(content["score"]),
+                       "ID": "MAL: " + str(content_id)}
 
         return self.compose_list(mal_columns)
 
@@ -253,7 +258,8 @@ class Scrapper:
                         "Genres": genres,
                         "Runtime": str(content["runtime"]),
                         "Trailer": video,
-                        "User Score": str(content["vote_average"])}
+                        "User Score": str(content["vote_average"]),
+                        "ID": "IMDB: " + str(content_id)}
 
         return self.compose_list(imdb_columns)
 

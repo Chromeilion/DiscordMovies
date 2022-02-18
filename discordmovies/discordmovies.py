@@ -3,6 +3,7 @@ from discordmovies.scrapper import Scrapper
 from typing import Union
 from discordmovies.exceptions import MovieIdentityError
 
+
 class DiscordMovies:
     """
     A class for going through a discord movie recommendations channel and
@@ -170,17 +171,23 @@ class DiscordMovies:
                                   end_row=1)
         handler.set_alignment()
 
-    def handle_duplicates(self):
+    def handle_duplicates(self, ignore: list = ["Poster", "Title", "Runtime", "Trailer", "User Score"]):
         """
-        Checks for duplicate entries, and if it finds them, combines them into
-        one entry where applicable. Quite basic currently, however, Any kind of
-        improvement would come at the cost of flexibility.
+        Checks for duplicate entries, and if it finds them, combines them into one entry where applicable.
+        Optionally a variable "ignore" can be passed. This should be a list of columns that should be ignored when
+        combining duplicates. What this means is that when combining duplicates, only the first value in the ignored
+        column will stay and all duplicate values will be deleted.
         """
 
-        titles = [i[1] for i in self.content]
+        titles = [i[self.scrapper.get_columns()["Title"]] for i in self.content]
 
         # Get list of duplicates
         duplicates = Parser().check_duplicates(titles)
+
+        ignore_indexes = []
+        categories = self.scrapper.get_columns()
+        for i in ignore:
+            ignore_indexes.append(categories[i])
 
         removal_list = []
 
@@ -195,7 +202,9 @@ class DiscordMovies:
 
                 for j in dupes_minus_min:
                     for k, m in enumerate(self.content[minimum_dupe]):
-                        if self.content[j][k] not in m:
+                        if k in ignore_indexes:
+                            continue
+                        elif self.content[j][k] not in m:
                             self.content[minimum_dupe][k] += f"\n{self.content[j][k]}"
 
         # Now we remove duplicates if there are any.
