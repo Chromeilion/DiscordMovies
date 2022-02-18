@@ -16,6 +16,13 @@ class Scrapper:
         self.auth = None
         self.bot = None
         self.headers = None
+        # These are all the indexes where  columns should be placed.
+        self.columns = {"Poster": 0,
+                        "Title": 1,
+                        "Genres": 2,
+                        "Runtime": 3,
+                        "Trailer": 4,
+                        "User Score": 5}
 
     def check_token(self):
         r = requests.get(f"https://discordapp.com/api/v9/users/@me",
@@ -134,8 +141,7 @@ class Scrapper:
 
         return self.get_mal(response_loaded["data"]["Media"]["idMal"])
 
-    @staticmethod
-    def get_mal(content_id: int, sleep_time: float = 0.5) -> list:
+    def get_mal(self, content_id: int, sleep_time: float = 0.5) -> list:
         """
         Take MAL link and return metadata for that entry. Uses jikan.moe.
         """
@@ -148,7 +154,7 @@ class Scrapper:
 
         while response.status_code == 429 and sleep_time < 24:
             # Try again in a bit in case of more severe rate limiting.
-            sleep_time = sleep_time**2
+            sleep_time = sleep_time ** 2
             time.sleep(sleep_time)
 
             response = requests.get(f"https://api.jikan.moe/v4/anime/{content_id}")
@@ -182,22 +188,24 @@ class Scrapper:
         else:
             title = content["title_english"]
 
-        return [content["images"]["jpg"]["image_url"],
-                title,
-                genres, str(content["duration"]),
-                str(content["trailer"]["url"]),
-                str(content["score"])]
+        mal_columns = {"Poster": content["images"]["jpg"]["image_url"],
+                       "Title": title,
+                       "Genres": genres,
+                       "Runtime": str(content["duration"]),
+                       "Trailer": str(content["trailer"]["url"]),
+                       "User Score": str(content["score"])}
 
-    @staticmethod
-    def get_imdb(content_id: int, omdb_api_key: str) -> list:
+        return self.compose_list(mal_columns)
+
+    def get_imdb(self, content_id: int, omdb_api_key: str) -> list:
         """
         Gets metadata from tmdb given an imdb link. Could
         technically work with a lot more than just imdb.
         """
 
         find_r = requests.get(f"https://api.themoviedb.org/3/find"
-                                f"/{content_id}?api_key={omdb_api_key}&"
-                                f"language=en-US&external_source=imdb_id")
+                              f"/{content_id}?api_key={omdb_api_key}&"
+                              f"language=en-US&external_source=imdb_id")
 
         if find_r.status_code == 404:
             raise MovieIdentityError(f"Could not find IMDB movie with ID: {content_id}")
@@ -210,7 +218,6 @@ class Scrapper:
                                   f"url: {find_r.url}")
 
         omdb_id = json.loads(find_r.content)["movie_results"][0]["id"]
-
 
         lookup_r = requests.get(f"https://api.themoviedb.org/3/movie"
                                 f"/{omdb_id}?api_key={omdb_api_key}")
@@ -238,7 +245,28 @@ class Scrapper:
         else:
             genres = genres[0]
 
-        return [image_base + image_size + content["poster_path"],
-                content["title"],
-                genres, str(content["runtime"]),
-                video, str(content["vote_average"])]
+        imdb_columns = {"Poster": image_base + image_size + content["poster_path"],
+                        "Title": content["title"],
+                        "Genres": genres,
+                        "Runtime": str(content["runtime"]),
+                        "Trailer": video,
+                        "User Score": str(content["vote_average"])}
+
+        return self.compose_list(imdb_columns)
+
+    def compose_list(self, attributes: dict) -> list:
+        """
+        Takes a dictionary with movie attributes and maps them to a list using indices from self.columns.
+        :param attributes:
+        :return:
+        """
+        sorted_categories = sorted(self.columns.items(), key=lambda item: item[1])
+
+        cat_list = []
+        for i in sorted_categories:
+            try:
+                cat_list.append(attributes[i[0]])
+            except KeyError:
+                cat_list.append("Not Found")
+
+        return cat_list
