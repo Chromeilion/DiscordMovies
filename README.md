@@ -4,7 +4,6 @@ A script that goes through a discord channel with movie links in it. It extracts
 Useful if you run movie nights where people request stuff through discord, and would like to automate the process of collecting requests.
 
 While the program currently has most necessary features, there's still a lot of polish to be done. Specifically:
-- Check if link is actually to a movie site
 - General code quality
 - A progress bar
 - Avoid unnecessary API calls by removing entries already present within an existant CSV/sheet before extracting metadata
