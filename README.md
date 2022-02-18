@@ -24,7 +24,7 @@ if you'd like to use a .env file instead of keeping keys as files and passing ar
 Take a look at env.example to see everything that can be set.
 
 An important note, when using an env file for your Google app credentials, the generated Google user token will be saved to your .env file and then loaded from there in future runs
-instead of being saved to a file.
+instead of being saved to its own file.
 
 
 # Discord Auth
