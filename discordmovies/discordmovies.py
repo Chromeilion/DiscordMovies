@@ -17,7 +17,7 @@ class DiscordMovies:
         self.scrapper = Scrapper()
         self.content = None
         self.bot = bot
-        self.categories = self.get_categories()
+        self.categories = self._get_categories()
 
     def discord_to_sheets(self, channel_id: Union[str, int],
                           sheet_id: Union[str, int] = None,
@@ -212,7 +212,7 @@ class DiscordMovies:
             for i in removal_list:
                 del self.content[i]
 
-    def get_categories(self):
+    def _get_categories(self):
         columns = [i[0] for i in self.scrapper.get_sorted_columns()]
         columns.extend(["Link", "User"])
         return columns

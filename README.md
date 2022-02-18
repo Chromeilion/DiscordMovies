@@ -20,9 +20,11 @@ In order to get metadata, the program needs a TMDB API key. This can be found [h
 The key can be passed as an environment variable or as a command line argument.
 
 ## Optional .env
-if you'd like to use a .env file instead of keeping all the keys in different files, just copy-paste the contents from credentials.json into the .env file. The variable name is "GOOGLE_APP_CREDENTIALS" and the json contents should be surrounded in single quotes. After adding it to .env, either remove credentials.json or rename it.
+if you'd like to use a .env file instead of keeping keys as files and passing arguments through command line this is possible.
+Take a look at env.example to see everything that can be set.
 
-When running the program, the generated Google user token will be saved to your .env file and then loaded from there in future runs.
+An important note, when using an env file for your Google app credentials, the generated Google user token will be saved to your .env file and then loaded from there in future runs
+instead of being saved to a file.
 
 
 # Discord Auth
@@ -43,7 +45,14 @@ python DiscordMovies.py
 Python 3.8 is the only officially supported version, however it'll probably run fine on other versions.
 
 There are a few ways to specify what the program should do. I recommend running ```python DiscordMovies.py --help``` to see the options.
-All options can also be set as environment variables. Take a look at env.example to see what variables can be set.
+All options can also be set as environment variables. 
+
+# Advanced Stuff
+While the program produces good-looking spreadsheets by default, if you'd like more control you can use discordmovies in your own script by importing it.
+If you'd like to see how discordmovies can be used in a script, just checkout DiscordMovies.py for an example.
+
+Some submodules are quite self-sufficient, like docshandler for example, which could be used in all kinds of contexts when you just need to deal with Google sheets.
+
 
 # Contributing
 Anybody is welcome to contribute. Simply fork the repo and make a pull request.
