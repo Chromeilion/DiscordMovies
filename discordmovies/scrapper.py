@@ -1,6 +1,5 @@
 import requests
 import json
-
 from discordmovies.exceptions import MovieIdentityError
 from typing import Union
 from discordmovies.parser import Parser

@@ -1,3 +1,4 @@
+from tqdm import tqdm
 from discordmovies.parser import Parser
 from discordmovies.scrapper import Scrapper
 from typing import Union
@@ -145,17 +146,20 @@ class DiscordMovies:
         links = Parser.extract_links(messages)
 
         self.content = []
-
+        failures = []
         # Create list with all links and metadata
-        for i in links:
+        for i in tqdm(links, unit=" movies", desc="gathering metadata"):
             try:
                 metadata = self.scrapper.get_metadata(i[0], tmdb_api_key)
             except MovieIdentityError:
-                print(f"Failed to find metadata for {i}, skipping.")
+                failures.append(i)
                 continue
 
             [metadata.append(j) for j in i[1::]]
             self.content.append(metadata)
+
+        print("The following movies were not found:")
+        print('\n'.join(map(str, failures)))
 
         self.handle_duplicates()
 
