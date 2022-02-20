@@ -47,9 +47,14 @@ Python 3.8 is the only officially supported version, however it'll probably run 
 There are a few ways to specify what the program should do. I recommend running ```python DiscordMovies.py --help``` to see the options.
 All options can also be set as environment variables. 
 
+# Supported Link Types
+The program currently supports links from IMDB, MAL, and Anilist. Since these sources cover pretty much all movies people may want to suggest,
+support for more sites will probably not be added. On that note, if you've got a reason why you want a site supported, feel free to open an issue.
+
+
 # Advanced Stuff
 While the program produces good-looking spreadsheets by default, if you'd like more control you can use discordmovies in your own script by importing it.
-If you'd like to see how discordmovies can be used in a script, just checkout DiscordMovies.py for an example.
+If you'd like to see how discordmovies can be used in a script, just check out DiscordMovies.py for an example.
 
 Some submodules are quite self-sufficient, like docshandler for example, which could be used in all kinds of contexts when you just need to deal with Google sheets.
 
