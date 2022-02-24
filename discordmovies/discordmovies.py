@@ -16,6 +16,7 @@ class DiscordMovies:
         self.scrapper = Scrapper()
         self.movie_list = MovieList()
         self.bot = bot
+        self.links = []
 
     def discord_to_sheets(self, channel_id: Union[str, int],
                           sheet_id: Union[str, int] = None,
@@ -50,8 +51,15 @@ class DiscordMovies:
             if not values:
                 content_sheets = self.movie_list.get_movies_list()
             else:
+                print("Removing movies which are no longer in Discord.")
+                handler.remove_row_not_list(
+                    values=self.links,
+                    column=self.movie_list.
+                    get_cat_indexes()["Link"],
+                    ignore=[self.movie_list.get_categories()])
+
                 content_sheets = self.movie_list.get_movies_list(
-                    attributes=False)
+                    attributes_key=False)
 
             self.movie_list.format_images()
             handler.format_sheet()
@@ -109,7 +117,8 @@ class DiscordMovies:
                                    tmdb_api_key=tmdb_api_key,
                                    current_content=file_contents)
 
-                for i in self.movie_list.get_movies_list(attributes=False):
+                for i in self.movie_list.get_movies_list(
+                        attributes_key=False):
                     writer.writerow(i)
 
         else:
@@ -141,9 +150,11 @@ class DiscordMovies:
                                               bot=self.bot)
 
         # Extract all links from messages
-        links = Parser.extract_links(messages)
-        for i in links:
+        self.links = Parser.extract_links(messages)
+        for i in self.links:
             self.movie_list.append(Movie(values=i))
+
+        self.links = [i['Link'] for i in self.links]
 
         if current_content is not None:
             link_index = self.movie_list.get_cat_indexes()["Link"]

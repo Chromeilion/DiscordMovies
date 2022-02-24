@@ -181,3 +181,50 @@ class DocsHandler:
         self.adjust_row_height(height=first_row_height, start_row=0,
                                end_row=1)
         self.set_alignment()
+
+    def remove_row(self, start: int, stop: int):
+        """
+        Removes a range of rows in a spreadsheet. Start and stop can be the
+        same value if you just want to remove one row.
+        """
+
+        requests = [
+            {
+                "deleteDimension": {
+                    "range": {
+                        "dimension": "ROWS",
+                        "startIndex": start,
+                        "endIndex": stop
+                    },
+                }
+            }
+        ]
+
+        body = {
+            'requests': requests
+        }
+
+        self.service.spreadsheets().batchUpdate(
+            spreadsheetId=self.spreadsheet_id,
+            body=body).execute()
+
+    def remove_row_not_list(self, values: list, column: int, ignore: list):
+        """
+        Remove a row if the value in its column isn't in a list. You can also
+        specify which rows to ignore in a list.
+        """
+
+        removal_list = []
+
+        contents = self.get_doc_contents()["values"]
+
+        for k, i in enumerate(contents):
+            if i in ignore:
+                continue
+            elif not any([j in i[column] for j in values]):
+                removal_list.append(k)
+
+        removal_list.reverse()
+
+        for i in removal_list:
+            self.remove_row(i, i+1)

@@ -175,15 +175,26 @@ class MovieList(MovieCategories):
 
         return matches
 
-    def get_movies_list(self, attributes: bool = True) -> list:
+    def get_movies_list(self, attributes_key: bool = True,
+                        attributes: Union[str, List[str]] = None) -> list:
         """
-        Get a list of all movies, can add attributes to the first position of
-        the list.
+        Get a list of all movies, can add an attributes key to the first
+        position of the list. By default, has all attributes, however you can
+        choose which ones you'd like with a list.
         """
-        movies_list = [i.get_list() for i in self.movies]
 
-        if attributes:
-            movies_list.insert(0, self.get_categories())
+        if attributes is None:
+            attributes = self.get_categories()
+
+        movies_list = [i.get_list(attribute=attributes) for i in self.movies]
+
+        if attributes_key:
+            attribute_key_values = self.get_categories()
+            for i in attributes:
+                if i not in attribute_key_values:
+                    attribute_key_values.remove(i)
+
+            movies_list.insert(0, attribute_key_values)
 
         return movies_list
 
