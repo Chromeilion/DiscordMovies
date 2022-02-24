@@ -202,7 +202,10 @@ class MovieList(MovieCategories):
 
         if len(failures) > 0:
             print("The following movies were not found:")
-            print('\n'.join(map(str, failures)))
+            print('\n'.join(map(str, [i["Link"] for i in failures])))
+
+            for i in failures:
+                self.remove(i)
 
     def merge_duplicates(self, ignore: List[str] = None,
                          attribute: str = "Title"):
@@ -216,7 +219,7 @@ class MovieList(MovieCategories):
 
         if ignore is None:
             ignore = ["Poster", "Title", "Runtime", "Trailer", "User Score",
-                      "Date Suggested"]
+                      "Date Suggested", "Genres"]
 
         titles = [i.get_list([attribute]) for i in self]
 
@@ -242,11 +245,11 @@ class MovieList(MovieCategories):
                 removal_list += dupes_minus_min
 
                 for j in dupes_minus_min:
-                    for k, m in zip(categories, self[minimum_dupe].items()):
-                        if k in ignore:
+                    for m in self[minimum_dupe].items():
+                        if m[0] in ignore:
                             pass
-                        elif self[j][k] not in m:
-                            self[minimum_dupe][k] += f"\n{self[j][k]}"
+                        elif self[j][m[0]] not in m[1]:
+                            self[minimum_dupe][m[0]] += f"\n{self[j][m[0]]}"
 
         # Now we remove duplicates if there are any.
         if len(removal_list) > 0:
