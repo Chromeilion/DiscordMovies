@@ -65,6 +65,9 @@ class Movie(MovieCategories):
 
         self.info[key] = value
 
+    def items(self):
+        return self.info.items()
+
     def get_list(self, attribute: List[str] = None) -> list:
         """
         Values from a Movie object in the form of a list. Can specify
@@ -212,7 +215,8 @@ class MovieList(MovieCategories):
         """
 
         if ignore is None:
-            ignore = ["Poster", "Title", "Runtime", "Trailer", "User Score"]
+            ignore = ["Poster", "Title", "Runtime", "Trailer", "User Score",
+                      "Date Suggested"]
 
         titles = [i.get_list([attribute]) for i in self]
 
@@ -238,9 +242,9 @@ class MovieList(MovieCategories):
                 removal_list += dupes_minus_min
 
                 for j in dupes_minus_min:
-                    for k, m in zip(categories, self[minimum_dupe]):
+                    for k, m in zip(categories, self[minimum_dupe].items()):
                         if k in ignore:
-                            continue
+                            pass
                         elif self[j][k] not in m:
                             self[minimum_dupe][k] += f"\n{self[j][k]}"
 
@@ -274,7 +278,7 @@ class MovieList(MovieCategories):
 
             for i in self:
                 for j in value:
-                    if i[attribute] == j:
+                    if i[attribute] in j:
                         removal_list.append(i)
                         break
 
