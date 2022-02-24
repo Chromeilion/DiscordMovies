@@ -3,6 +3,7 @@ import json
 from discordmovies.exceptions import MovieIdentityError
 from typing import Union
 from discordmovies.parser import Parser
+from discordmovies.movies import Movie
 
 
 class Scrapper:
@@ -15,20 +16,7 @@ class Scrapper:
         self.auth = None
         self.bot = None
         self.headers = None
-        # These are all the indexes where  columns should be placed.
-        self.columns = {"Poster": 0,
-                        "Title": 1,
-                        "Genres": 2,
-                        "Runtime": 3,
-                        "Trailer": 4,
-                        "User Score": 5,
-                        "ID": 6}
-
-    def get_columns(self) -> dict:
-        return self.columns
-
-    def get_sorted_columns(self) -> list:
-        return sorted(self.columns.items(), key=lambda item: item[1])
+        self.movie = None
 
     def check_token(self):
         r = requests.get(f"https://discordapp.com/api/v9/users/@me",
@@ -84,8 +72,8 @@ class Scrapper:
 
         return messages
 
-    def get_metadata(self, link: str,
-                     omdb_api_key: str = None) -> Union[list, None]:
+    def get_metadata(self, movie: Movie,
+                     omdb_api_key: str = None,) -> Union[list, None]:
         """
         Takes a link from a supported website and returns a list containing
         the metadata for the film/series.
@@ -93,21 +81,23 @@ class Scrapper:
         If metadata cannot be found, raises MovieIdentityError.
         """
 
-        site_info = Parser.identify(link)
+        self.movie = movie
+        site_info = Parser.identify(self.movie["Link"])
 
         if site_info[1] is None:
             raise MovieIdentityError
 
         elif site_info[0] == "anilist.co":
-            return self.get_anilist(site_info[1]) + [link]
+            return self.get_anilist(site_info[1])
 
         elif site_info[0] == "myanimelist.net":
-            return self.get_mal(site_info[1]) + [link]
+            return self.get_mal(site_info[1])
 
         elif site_info[0] in ["www.imdb.com", "m.imdb.com"]:
             if omdb_api_key is not None:
-                return self.get_imdb(site_info[1],
-                                     omdb_api_key=omdb_api_key) + [link]
+                return self.get_imdb(
+                    site_info[1],
+                    omdb_api_key=omdb_api_key)
             else:
                 return None
 
@@ -147,7 +137,7 @@ class Scrapper:
 
         return self.get_mal(response_loaded["data"]["Media"]["idMal"])
 
-    def get_mal(self, content_id: int, sleep_time: float = 0.5) -> list:
+    def get_mal(self, content_id: int, sleep_time: float = 0.5):
         """
         Take MAL link and return metadata for that entry. Uses jikan.moe.
         """
@@ -163,7 +153,8 @@ class Scrapper:
             sleep_time = sleep_time ** 2
             time.sleep(sleep_time)
 
-            response = requests.get(f"https://api.jikan.moe/v4/anime/{content_id}")
+            response = requests.get(f"https://api.jikan.moe/v4/"
+                                    f"anime/{content_id}")
 
         if response.status_code == 429:
             # This should theoretically never happen.
@@ -172,9 +163,12 @@ class Scrapper:
                                   "program. If that doesn't fix it try "
                                   "again later.")
         elif response.status_code == 404:
-            raise MovieIdentityError(f"Jikan returned a 404 not found error for movie with ID: {content_id}")
+            raise MovieIdentityError(f"Jikan returned a 404 not found error "
+                                     f"for movie with ID: {content_id}")
         elif response.status_code != 200:
-            raise ConnectionError(f"Somethings wrong with Jikan. Specifically, it didn't return a 200 status code. "
+            raise ConnectionError(f"Somethings wrong with Jikan. "
+                                  f"Specifically, it didn't return a 200 "
+                                  f"status code. "
                                   f"Here's some info about the response: \n "
                                   f"status code: {response.status_code} \n"
                                   f"response content: {response.content} \n"
@@ -194,17 +188,15 @@ class Scrapper:
         else:
             title = content["title_english"]
 
-        mal_columns = {"Poster": content["images"]["jpg"]["image_url"],
-                       "Title": title,
-                       "Genres": genres,
-                       "Runtime": str(content["duration"]),
-                       "Trailer": str(content["trailer"]["url"]),
-                       "User Score": str(content["score"]),
-                       "ID": "MAL: " + str(content_id)}
+        self.movie["Poster"] = content["images"]["jpg"]["image_url"]
+        self.movie["Title"] = title
+        self.movie["Genres"] = genres
+        self.movie["Runtime"] = str(content["duration"])
+        self.movie["Trailer"] = str(content["trailer"]["url"])
+        self.movie["User Score"] = str(content["score"])
+        self.movie["ID"] = "MAL: " + str(content_id)
 
-        return self.compose_list(mal_columns)
-
-    def get_imdb(self, content_id: int, omdb_api_key: str) -> list:
+    def get_imdb(self, content_id: int, omdb_api_key: str):
         """
         Gets metadata from tmdb given an imdb link. Could
         technically work with a lot more than just imdb.
@@ -215,9 +207,11 @@ class Scrapper:
                               f"language=en-US&external_source=imdb_id")
 
         if find_r.status_code == 404:
-            raise MovieIdentityError(f"Could not find IMDB movie with ID: {content_id}")
+            raise MovieIdentityError(f"Could not find IMDB movie with "
+                                     f"ID: {content_id}")
         if find_r.status_code != 200:
-            raise ConnectionError("Something went wrong when trying to access TMDB. Here are the details about the "
+            raise ConnectionError("Something went wrong when trying to access "
+                                  "TMDB. Here are the details about the "
                                   "response:"
                                   f"status code: {find_r.status_code} \n"
                                   f"response content: {find_r.content} \n"
@@ -252,27 +246,11 @@ class Scrapper:
         else:
             genres = genres[0]
 
-        imdb_columns = {"Poster": image_base + image_size + content["poster_path"],
-                        "Title": content["title"],
-                        "Genres": genres,
-                        "Runtime": str(content["runtime"]),
-                        "Trailer": video,
-                        "User Score": str(content["vote_average"]),
-                        "ID": "IMDB: " + str(content_id)}
-
-        return self.compose_list(imdb_columns)
-
-    def compose_list(self, attributes: dict) -> list:
-        """
-        Takes a dictionary with movie attributes and maps them to a list using indices from self.columns.
-        """
-        sorted_categories = self.get_sorted_columns()
-
-        cat_list = []
-        for i in sorted_categories:
-            try:
-                cat_list.append(attributes[i[0]])
-            except KeyError:
-                cat_list.append("Not Found")
-
-        return cat_list
+        self.movie["Poster"] = image_base + image_size + content["poster_"
+                                                                 "path"]
+        self.movie["Title"] = str(content["title"])
+        self.movie["Genres"] = str(genres)
+        self.movie["Runtime"] = str(content["runtime"])
+        self.movie["Trailer"] = str(video)
+        self.movie["User Score"] = str(content["vote_average"])
+        self.movie["ID"] = "IMDB: " + str(content_id)

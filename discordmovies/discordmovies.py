@@ -1,8 +1,7 @@
-from tqdm import tqdm
 from discordmovies.parser import Parser
 from discordmovies.scrapper import Scrapper
 from typing import Union
-from discordmovies.exceptions import MovieIdentityError
+from discordmovies.movies import Movie, MovieList
 
 
 class DiscordMovies:
@@ -15,9 +14,8 @@ class DiscordMovies:
     def __init__(self, discord_auth_token: Union[str, int], bot: bool = True):
         self.auth_token = discord_auth_token
         self.scrapper = Scrapper()
-        self.content = None
+        self.movie_list = MovieList()
         self.bot = bot
-        self.categories = self._get_categories()
 
     def discord_to_sheets(self, channel_id: Union[str, int],
                           sheet_id: Union[str, int] = None,
@@ -31,57 +29,42 @@ class DiscordMovies:
         """
         from discordmovies.docshandler import DocsHandler
 
-        # Check if links have already been calculated and calculate them if not.
-        if self.content is None:
-            self.get_links(channel_id=channel_id, max_messages=max_messages,
-                           tmdb_api_key=tmdb_api_key)
-
-            content_sheets = [self.categories]
-            for i in self.content[1:]:
-                image = [f'=IMAGE("{i[0]}")'] + i[1:]
-                content_sheets.append(image)
-
-        elif type(self.content) == "list":
-            content_sheets = self.content
-
-        else:
-            raise ValueError("self.content should be of type 'list' or 'None', it is neither.")
-
-        # Write to Google Sheets. If the sheet exists, then new links get
-        # appended. Otherwise, a new sheet is created and values are filled.
         handler = DocsHandler(spreadsheet_id=sheet_id)
         handler.setup_docs()
 
-        if not handler.check_existence():
-            handler.create_sheet(title=sheet_name)
-            self.format_sheet(handler=handler)
-            handler.fill_sheet(content_sheets)
-
-        else:
+        if handler.check_existence():
             sheet = handler.get_doc_contents()
-
-            content_sheets = [self.categories]
-            for i in self.content:
-                image = [f'=IMAGE("{i[0]}")'] + i[1:]
-                content_sheets.append(image)
 
             try:
                 values = sheet["values"]
             except KeyError:
                 values = None
 
-            if values is not None:
-                dupes = []
-                names = [i[1] for i in content_sheets]
-                for i in values:
-                    if i[1] in names:
-                        dupes.append(i[1])
+            if not self.movie_list:
+                self.get_links(channel_id=channel_id, max_messages=max_messages,
+                               tmdb_api_key=tmdb_api_key,
+                               current_content=values)
 
-                content_sheets = [i for i in content_sheets if i[1]
-                                  not in dupes]
+            self.movie_list.format_images()
 
+            if not values:
+                content_sheets = self.movie_list.get_movies_list()
+            else:
+                content_sheets = self.movie_list.get_movies_list(
+                    attributes=False)
+
+            self.movie_list.format_images()
             handler.format_sheet()
             handler.append_sheet(content_sheets)
+
+        else:
+            self.get_links(channel_id=channel_id, max_messages=max_messages,
+                           tmdb_api_key=tmdb_api_key)
+            self.movie_list.format_images()
+            content_sheets = self.movie_list.get_movies_list()
+            handler.create_sheet(title=sheet_name)
+            handler.format_sheet()
+            handler.fill_sheet(content_sheets)
 
     def discord_to_csv(self, channel_id: Union[str, int],
                        csv_name: str = "DiscordMovies",
@@ -98,41 +81,56 @@ class DiscordMovies:
         if csv_name[:-3] != ".csv":
             csv_name = csv_name + ".csv"
 
-        # Check if links have already been calculated.
-        if self.content is None:
-            self.get_links(channel_id=channel_id, max_messages=max_messages,
-                           tmdb_api_key=tmdb_api_key)
-
         # Check if the csv already exists and whether we need to rewrite it
         # or not.
         if os.path.exists(csv_name):
             print("CSV file exists, assuming correct formatting and appending "
                   "new values.")
-            titles = [i[1] for i in self.content]
-            dupes = []
+
             with open(csv_name, "r+", newline="") as f:
-                for i in csv.reader(f):
-                    if i[1] in titles:
-                        dupes.append(i[1])
-
-                self.content = [i for i in self.content if i[1] not in dupes]
-
+                reader = csv.reader(f)
                 writer = csv.writer(f)
-                for i in self.content:
+
+                file_contents = list(reader)
+                if not file_contents:
+                    writer.writerow(self.movie_list.get_categories())
+                    f.flush()
+                    file_contents = list(reader)
+
+                if file_contents[0] != self.movie_list.get_categories():
+                    if len(file_contents) > 0:
+                        raise AttributeError("CSV File is incorrectly"
+                                             "formatted. Please create"
+                                             "a new one.")
+
+                if not self.movie_list:
+                    self.get_links(channel_id=channel_id,
+                                   max_messages=max_messages,
+                                   tmdb_api_key=tmdb_api_key,
+                                   current_content=file_contents)
+
+                for i in self.movie_list.get_movies_list(attributes=False):
                     writer.writerow(i)
+
         else:
+            if not self.movie_list:
+                self.get_links(channel_id=channel_id,
+                               max_messages=max_messages,
+                               tmdb_api_key=tmdb_api_key)
+
             print("No CSV file found, creating new one.")
             with open(csv_name, "w", newline="") as f:
                 writer = csv.writer(f)
-                writer.writerow(self.categories)
 
-                for i in self.content:
+                for i in self.movie_list.get_movies_list():
                     writer.writerow(i)
 
     def get_links(self, channel_id: Union[str, int], max_messages: int = 100,
-                  tmdb_api_key: str = None):
+                  tmdb_api_key: str = None,
+                  current_content: list = None):
         """
-        Gets messages and parses them, then it gets rid of duplicates and non-movie links.
+        Gets messages and parses them, then it gets rid of duplicates and
+        non-movie links, as well as movies already present in current_content.
         The output goes into self.content.
         """
 
@@ -144,75 +142,14 @@ class DiscordMovies:
 
         # Extract all links from messages
         links = Parser.extract_links(messages)
+        for i in links:
+            self.movie_list.append(Movie(values=i))
 
-        self.content = []
-        failures = []
+        if current_content is not None:
+            link_index = self.movie_list.get_cat_indexes()["Link"]
+            links = [i[link_index] for i in current_content if i != []]
+            self.movie_list.remove_by_attribute_value(attribute="Link",
+                                                      value=links)
 
-        # Create list with all links and metadata
-        for i in tqdm(links, unit=" movies", desc="gathering metadata"):
-            try:
-                metadata = self.scrapper.get_metadata(i[0], tmdb_api_key)
-            except MovieIdentityError:
-                failures.append(i)
-                continue
-
-            [metadata.append(j) for j in i[1::]]
-            self.content.append(metadata)
-
-        # Print failures if there are any.
-        if len(failures) > 0:
-            print("The following movies were not found:")
-            print('\n'.join(map(str, failures)))
-
-        self.handle_duplicates()
-
-    def handle_duplicates(self, ignore: list = None):
-        """
-        Checks for duplicate entries, and if it finds them, combines them into one entry where applicable.
-        Optionally a variable "ignore" can be passed. This should be a list of columns that should be ignored when
-        combining duplicates. What this means is that when combining duplicates, only the first value in the ignored
-        column will stay and all duplicate values will be deleted.
-        """
-
-        if ignore is None:
-            ignore = ["Poster", "Title", "Runtime", "Trailer", "User Score"]
-
-        titles = [i[self.scrapper.get_columns()["Title"]] for i in self.content]
-
-        # Get list of duplicates
-        duplicates = Parser().check_duplicates(titles)
-
-        ignore_indexes = []
-        categories = self.scrapper.get_columns()
-        for i in ignore:
-            ignore_indexes.append(categories[i])
-
-        removal_list = []
-
-        # Iterate through the duplicates and merge them into one entry.
-        # Duplicates don't get deleted here, because it would mess up the
-        # indexing.
-        for i in duplicates:
-            if len(duplicates[i]) > 1:
-                minimum_dupe = min(duplicates[i])
-                dupes_minus_min = [n for n in duplicates[i] if n != min(duplicates[i])]
-                removal_list += dupes_minus_min
-
-                for j in dupes_minus_min:
-                    for k, m in enumerate(self.content[minimum_dupe]):
-                        if k in ignore_indexes:
-                            continue
-                        elif self.content[j][k] not in m:
-                            self.content[minimum_dupe][k] += f"\n{self.content[j][k]}"
-
-        # Now we remove duplicates if there are any.
-        if len(removal_list) > 0:
-            removal_list.sort(reverse=True)
-
-            for i in removal_list:
-                del self.content[i]
-
-    def _get_categories(self):
-        columns = [i[0] for i in self.scrapper.get_sorted_columns()]
-        columns.extend(["Link", "User"])
-        return columns
+        self.movie_list.fill_all_metadata(tmdb_api_key)
+        self.movie_list.merge_duplicates()

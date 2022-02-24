@@ -4,14 +4,15 @@ from urllib.parse import urlparse
 
 class Parser:
     """
-    A class that contains functions for parsing Discord messages and movie links.
+    A class that contains functions for parsing Discord messages and movie
+    links.
     """
 
     @staticmethod
     def extract_links(messages) -> list:
         """
         Go through jsons returned by Scrapper and extract links from message
-        contents.
+        contents. Returns a Movie object with link and author filled.
         """
         links = []
         for i in messages:
@@ -20,7 +21,9 @@ class Parser:
                                     str(j["content"]))
                 if re_obj:
                     for k in re_obj:
-                        links.append((k, j['author']['username']))
+                        links.append({"Link": k,
+                                      "User": j['author']['username'],
+                                      "Date Suggested": j['timestamp']})
         return links
 
     @staticmethod
@@ -62,6 +65,6 @@ class Parser:
         dupes = defaultdict(list)
 
         for i, item in enumerate(links):
-            dupes[item].append(i)
+            dupes[item[0]].append(i)
 
         return dupes
