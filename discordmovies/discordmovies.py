@@ -28,19 +28,17 @@ class DiscordMovies:
         document from them. If the document exists, it will only add links
         which do not exist already.
         """
-        from discordmovies.docshandler import DocsHandler
+        from discordmovies.fileutils.sheetshelper import SheetsHelper
 
-        handler = DocsHandler(spreadsheet_id=sheet_id)
-        handler.setup_docs()
+        sheets_helper = SheetsHelper(spreadsheet_id=sheet_id)
 
-        if handler.check_existence():
-            sheet = handler.get_doc_contents()
+        # If the Google Sheet already exists the operations that need to be
+        # done are different.
+        if sheets_helper.check_existence():
+            values = sheets_helper.get_values()
 
-            try:
-                values = sheet["values"]
-            except KeyError:
-                values = None
-
+            # Dont calculate the movie_list again if its already been
+            # calculated.
             if not self.movie_list:
                 self.get_links(channel_id=channel_id, max_messages=max_messages,
                                tmdb_api_key=tmdb_api_key,
@@ -48,31 +46,30 @@ class DiscordMovies:
 
             self.movie_list.format_images()
 
-            if not values:
-                content_sheets = self.movie_list.get_movies_list()
-            else:
-                print("Removing movies which are no longer in Discord.")
-                handler.remove_row_not_list(
-                    values=self.links,
-                    column=self.movie_list.
-                    get_cat_indexes()["Link"],
-                    ignore=[self.movie_list.get_categories()])
+            # It's important to store the output of remove_row_not_listed
+            # because it returns False if the sheet is empty. If the Sheet's
+            # empty, we need to add headers to the top.
+            sheet_not_empty = sheets_helper. \
+                remove_row_not_listed(values=self.links,
+                                      column=self.movie_list.get_cat_indexes(
+                                      )["Link"],
+                                      ignore=[self.movie_list.get_categories()])
 
+            if sheet_not_empty:
                 content_sheets = self.movie_list.get_movies_list(
                     attributes_key=False)
+            else:
+                content_sheets = self.movie_list.get_movies_list()
 
-            self.movie_list.format_images()
-            handler.format_sheet()
-            handler.append_sheet(content_sheets)
+            sheets_helper.write(content_sheets)
 
         else:
             self.get_links(channel_id=channel_id, max_messages=max_messages,
                            tmdb_api_key=tmdb_api_key)
             self.movie_list.format_images()
             content_sheets = self.movie_list.get_movies_list()
-            handler.create_sheet(title=sheet_name)
-            handler.format_sheet()
-            handler.fill_sheet(content_sheets)
+            sheets_helper.write_new(values=content_sheets,
+                                    title=sheet_name)
 
     def discord_to_csv(self, channel_id: Union[str, int],
                        csv_name: str = "DiscordMovies",

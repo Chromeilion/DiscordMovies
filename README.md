@@ -56,7 +56,7 @@ support for more sites will probably not be added. On that note, if you've got a
 While the program produces good-looking spreadsheets by default, if you'd like more control you can use discordmovies in your own script by importing it.
 If you'd like to see how discordmovies can be used in a script, just check out DiscordMovies.py for an example.
 
-Some submodules are quite self-sufficient, like docshandler for example, which could be used in all kinds of contexts when you just need to deal with Google sheets.
+Some submodules are quite self-sufficient, like docsutils for example, which could be used in all kinds of contexts when you just need to deal with Google sheets.
 
 
 # Contributing
