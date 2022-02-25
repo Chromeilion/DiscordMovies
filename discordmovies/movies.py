@@ -176,12 +176,18 @@ class MovieList(MovieCategories):
         return matches
 
     def get_movies_list(self, attributes_key: bool = True,
-                        attributes: Union[str, List[str]] = None) -> list:
+                        attributes: Union[str, List[str]] = None,
+                        format_images: bool = True,
+                        format_images_attribute: str =
+                        "Poster") -> List[List[str]]:
         """
         Get a list of all movies, can add an attributes key to the first
         position of the list. By default, has all attributes, however you can
         choose which ones you'd like with a list.
         """
+
+        if format_images:
+            self.format_images(attribute=format_images_attribute)
 
         if attributes is None:
             attributes = self.get_categories()

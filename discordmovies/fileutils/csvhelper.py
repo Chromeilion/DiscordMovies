@@ -1,6 +1,7 @@
 import csv
 import os
 from typing import List
+from discordmovies.discordmoviesattributes import DiscordMoviesAttributes
 
 
 class CsvHelper:
@@ -9,8 +10,9 @@ class CsvHelper:
     functions.
     """
 
-    def __init__(self, name: str):
-        self.name = self.check_name(name)
+    def __init__(self, attributes: DiscordMoviesAttributes):
+        self.attributes = attributes
+        self.name = self.check_name(self.attributes.name)
 
     @staticmethod
     def check_name(name: str) -> str:
@@ -37,11 +39,16 @@ class CsvHelper:
             reader = csv.reader(f)
             return list(reader)
 
-    def write_existing(self, values: List[List[str]], categories: List[str]):
+    def write_existing(self):
         """
         Write to an existing CSV file. Makes sure to append values instead of
         overwriting old ones. Also checks for correct formatting.
         """
+
+        values = self.attributes.movie_list.get_movies_list(
+            format_images=False,
+            attributes_key=False)
+        categories = self.attributes.movie_list.get_categories()
 
         with open(self.name, "r+", newline="") as f:
             writer = csv.writer(f)
@@ -61,10 +68,13 @@ class CsvHelper:
             for i in values:
                 writer.writerow(i)
 
-    def write_new(self, values: List[List[str]]):
+    def write_new(self):
         """
         Creates a new CSV file and writes to it.
         """
+
+        values = self.attributes.movie_list.get_movies_list(format_images=False)
+
         with open(self.name, "w", newline="") as f:
             writer = csv.writer(f)
 
