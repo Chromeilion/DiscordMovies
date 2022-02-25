@@ -40,7 +40,7 @@ class CsvHelper:
     def write_existing(self, values: List[List[str]], categories: List[str]):
         """
         Write to an existing CSV file. Makes sure to append values instead of
-        overwriting old ones.
+        overwriting old ones. Also checks for correct formatting.
         """
 
         with open(self.name, "r+", newline="") as f:
