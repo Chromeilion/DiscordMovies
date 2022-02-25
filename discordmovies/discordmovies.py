@@ -81,55 +81,27 @@ class DiscordMovies:
         """
         import csv
         import os
+        from discordmovies.fileutils.csvhelper import CsvHelper
+        csv_helper = CsvHelper(name=csv_name)
 
-        # Check name provided
-        if csv_name[:-3] != ".csv":
-            csv_name = csv_name + ".csv"
+        if csv_helper.exists():
+            if not self.movie_list:
+                self.get_links(channel_id=channel_id,
+                               max_messages=max_messages,
+                               tmdb_api_key=tmdb_api_key,
+                               current_content=csv_helper.get_content())
 
-        # Check if the csv already exists and whether we need to rewrite it
-        # or not.
-        if os.path.exists(csv_name):
-            print("CSV file exists, assuming correct formatting and appending "
-                  "new values.")
-
-            with open(csv_name, "r+", newline="") as f:
-                reader = csv.reader(f)
-                writer = csv.writer(f)
-
-                file_contents = list(reader)
-                if not file_contents:
-                    writer.writerow(self.movie_list.get_categories())
-                    f.flush()
-                    file_contents = list(reader)
-
-                if file_contents[0] != self.movie_list.get_categories():
-                    if len(file_contents) > 0:
-                        raise AttributeError("CSV File is incorrectly"
-                                             "formatted. Please create"
-                                             "a new one.")
-
-                if not self.movie_list:
-                    self.get_links(channel_id=channel_id,
-                                   max_messages=max_messages,
-                                   tmdb_api_key=tmdb_api_key,
-                                   current_content=file_contents)
-
-                for i in self.movie_list.get_movies_list(
-                        attributes_key=False):
-                    writer.writerow(i)
-
+            print("CSV file exists, appending new values.")
+            csv_helper.write_existing(values=self.movie_list.get_movies_list(),
+                                      categories=self.movie_list.
+                                      get_categories())
         else:
             if not self.movie_list:
                 self.get_links(channel_id=channel_id,
                                max_messages=max_messages,
                                tmdb_api_key=tmdb_api_key)
-
             print("No CSV file found, creating new one.")
-            with open(csv_name, "w", newline="") as f:
-                writer = csv.writer(f)
-
-                for i in self.movie_list.get_movies_list():
-                    writer.writerow(i)
+            csv_helper.write_new(values=self.movie_list.get_movies_list())
 
     def get_links(self, channel_id: Union[str, int], max_messages: int = 100,
                   tmdb_api_key: str = None,
