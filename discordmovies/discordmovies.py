@@ -79,8 +79,6 @@ class DiscordMovies:
         Takes all links from a discord channel, parses them,
         and dumps them into a CSV file.
         """
-        import csv
-        import os
         from discordmovies.fileutils.csvhelper import CsvHelper
         csv_helper = CsvHelper(name=csv_name)
 
