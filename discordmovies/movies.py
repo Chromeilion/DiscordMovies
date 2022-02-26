@@ -2,6 +2,7 @@ from tqdm import tqdm
 from discordmovies.exceptions import MovieIdentityError
 from discordmovies.parser import Parser
 from typing import Union, List, Dict
+import copy
 
 
 class MovieCategories:
@@ -35,6 +36,9 @@ class MovieCategories:
         if attribute not in self.categories:
             return False
         return True
+
+    def copy(self):
+        return copy.deepcopy(self)
 
 
 class Movie(MovieCategories):
@@ -176,17 +180,29 @@ class MovieList(MovieCategories):
         return matches
 
     def get_movies_list(self, attributes_key: bool = True,
-                        attributes: Union[str, List[str]] = None) -> list:
+                        attributes: Union[str, List[str]] = None,
+                        format_images: bool = True,
+                        format_images_attribute: str =
+                        "Poster") -> List[List[str]]:
         """
         Get a list of all movies, can add an attributes key to the first
         position of the list. By default, has all attributes, however you can
-        choose which ones you'd like with a list.
+        choose which ones you'd like with a list. Automatically formats
+        images for Google Sheets. When formatting, transformations are not
+        in-place.
         """
 
         if attributes is None:
             attributes = self.get_categories()
 
-        movies_list = [i.get_list(attribute=attributes) for i in self.movies]
+        if format_images:
+            movies_list = self.copy()
+            movies_list.format_images(attribute=format_images_attribute)
+        else:
+            movies_list = self
+
+        movies_list = [i.get_list(attribute=attributes) for i in
+                       movies_list.movies]
 
         if attributes_key:
             attribute_key_values = self.get_categories()

@@ -1,6 +1,7 @@
 import googleapiclient.errors
 from googleapiclient.discovery import build
 from .credentials import Creds
+from typing import List
 
 
 class DocsHandler:
@@ -56,7 +57,7 @@ class DocsHandler:
 
         print('Spreadsheet created successfully.')
 
-    def fill_sheet(self, inputs: list):
+    def fill_sheet(self, inputs: List[List[str]]):
         """
         Inserts contents into the body of a sheet. Input should be a list
         of lists with each list being a row.
@@ -94,7 +95,7 @@ class DocsHandler:
             return False
         return True
 
-    def append_sheet(self, values):
+    def append_sheet(self, values: List[List[str]]):
         """
         Append a list of values to a sheet.
         """
@@ -171,17 +172,6 @@ class DocsHandler:
             spreadsheetId=self.spreadsheet_id,
             body=body).execute()
 
-    def format_sheet(self, row_height: int = 148,
-                     first_row_height: int = 30):
-        """
-        Format a sheet to make it look pretty.
-        """
-
-        self.adjust_row_height(row_height)
-        self.adjust_row_height(height=first_row_height, start_row=0,
-                               end_row=1)
-        self.set_alignment()
-
     def remove_row(self, start: int, stop: int):
         """
         Removes a range of rows in a spreadsheet. Start and stop can be the
@@ -207,24 +197,3 @@ class DocsHandler:
         self.service.spreadsheets().batchUpdate(
             spreadsheetId=self.spreadsheet_id,
             body=body).execute()
-
-    def remove_row_not_list(self, values: list, column: int, ignore: list):
-        """
-        Remove a row if the value in its column isn't in a list. You can also
-        specify which rows to ignore in a list.
-        """
-
-        removal_list = []
-
-        contents = self.get_doc_contents()["values"]
-
-        for k, i in enumerate(contents):
-            if i in ignore:
-                continue
-            elif not any([j in i[column] for j in values]):
-                removal_list.append(k)
-
-        removal_list.reverse()
-
-        for i in removal_list:
-            self.remove_row(i, i+1)
