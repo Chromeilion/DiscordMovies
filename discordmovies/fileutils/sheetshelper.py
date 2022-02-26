@@ -107,6 +107,8 @@ class SheetsHelper:
                 row_indexes.append(k)
 
         for i, j in enumerate(self.get_values(column="Watched")):
+            if i == 0:
+                continue
             if i in row_indexes:
                 if j != "TRUE":
                     self.handler.update_value(value=[["TRUE"]],
