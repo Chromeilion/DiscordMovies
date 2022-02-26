@@ -191,6 +191,8 @@ class MovieList(MovieCategories):
         images for Google Sheets. When formatting, transformations are not
         in-place.
         """
+        if not self.movies:
+            return []
 
         if attributes is None:
             attributes = self.get_categories()

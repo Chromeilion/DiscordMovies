@@ -24,7 +24,8 @@ class DiscordMovies:
                         watched_channel_id: Union[str, int] = None,
                         sheet_id: Union[str, int] = None,
                         max_messages: int = 100,
-                        tmdb_api_key: str = None):
+                        tmdb_api_key: str = None,
+                        remove_watched: bool = False):
         """
         Extract all movies from a Discord channel and save them to a Google
         Sheet or CSV.
@@ -47,21 +48,24 @@ class DiscordMovies:
                                watched_channel_id=watched_channel_id,
                                max_messages=max_messages,
                                tmdb_api_key=tmdb_api_key,
-                               current_content=helper.get_values())
+                               current_content=helper.get_values(),
+                               remove_watched=remove_watched)
             helper.write_existing()
         else:
             if not self.attributes.movie_list:
                 self.get_links(channel_id=channel_id,
                                watched_channel_id=watched_channel_id,
                                max_messages=max_messages,
-                               tmdb_api_key=tmdb_api_key)
+                               tmdb_api_key=tmdb_api_key,
+                               remove_watched=remove_watched)
             helper.write_new()
 
     def get_links(self, channel_id: Union[str, int],
                   watched_channel_id: Union[str, int] = None,
                   max_messages: int = 100,
                   tmdb_api_key: str = None,
-                  current_content: list = None):
+                  current_content: list = None,
+                  remove_watched: bool = False):
         """
         Gets messages and parses them, then it gets rid of duplicates and
         non-movie links, as well as movies already present in current_content.
@@ -85,11 +89,11 @@ class DiscordMovies:
 
         if current_content is not None:
             link_index = self.attributes.movie_list.get_cat_indexes()["Link"]
-            self.attributes.links = [i[link_index] for i in current_content
-                                     if i != []]
+            current_links = [i[link_index] for i in current_content if i != []]
+
             self.attributes.movie_list.remove_by_attribute_value(
                 attribute="Link",
-                value=self.attributes.links)
+                value=current_links)
 
         self.attributes.movie_list.fill_all_metadata(tmdb_api_key)
         self.attributes.movie_list.merge_duplicates()
@@ -101,9 +105,15 @@ class DiscordMovies:
                 max_messages=max_messages,
                 bot=self.bot
             )
-            parser_watched_out = Parser.extract_links(watched_messages)
+
             self.attributes.watched_links = [
-                i['Link'] for i in parser_watched_out]
+                i["Link"] for i in Parser.extract_links(watched_messages)]
 
             self.attributes.movie_list.mark_watched(
                 self.attributes.watched_links)
+
+            if remove_watched:
+                self.attributes.movie_list.remove_by_attribute_value(
+                    attribute="Watched",
+                    value="True"
+                )

@@ -1,7 +1,7 @@
 import googleapiclient.errors
 from googleapiclient.discovery import build
 from .credentials import Creds
-from typing import List
+from typing import List, Tuple
 
 
 class DocsHandler:
@@ -13,6 +13,7 @@ class DocsHandler:
         self.creds = Creds()
         self.service = None
         self.spreadsheet_id = spreadsheet_id
+        self.spreadsheet_name = "Sheet1"
 
     def set_spreadsheet_id(self, spreadsheet_id: str):
         """
@@ -197,3 +198,34 @@ class DocsHandler:
         self.service.spreadsheets().batchUpdate(
             spreadsheetId=self.spreadsheet_id,
             body=body).execute()
+
+    def update_value(self, value: List[List[str]], start_index: Tuple[int, int],
+                     stop_index):
+        """
+        Update a cell/range in the sheet given the index and value/s.
+        """
+
+        coordinates = self.convert_a1(start_coordinate=start_index,
+                                      end_coordinate=stop_index)
+
+        body = {
+            "values": value
+        }
+
+        request = self.service.spreadsheets().values().update(
+            spreadsheetId=self.spreadsheet_id, range=coordinates,
+            valueInputOption="USER_ENTERED", body=body)
+
+        request.execute()
+
+    @staticmethod
+    def convert_a1(start_coordinate: Tuple[int, int],
+                   end_coordinate: Tuple[int, int]) -> str:
+        """
+        Given numpy style indexes, convert them to Google Sheets A1 notation.
+        """
+
+        alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+        return alphabet[start_coordinate[0]] + str(start_coordinate[1] + 1) + \
+            ":" + alphabet[end_coordinate[0]] + str(end_coordinate[1] + 1)

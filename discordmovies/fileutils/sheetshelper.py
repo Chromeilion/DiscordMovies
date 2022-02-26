@@ -1,5 +1,5 @@
 from discordmovies.fileutils.docsutils import DocsHandler
-from typing import List
+from typing import List, Union
 from discordmovies.attributes import DiscordMoviesAttributes
 
 
@@ -18,15 +18,24 @@ class SheetsHelper:
     def exists(self) -> bool:
         return self.handler.check_existence()
 
-    def get_values(self) -> List[List[str]]:
+    def get_values(self, column: str = None) -> Union[List[List[str]],
+                                                      List[str]]:
         """
         Get all values from the sheet. Returns an empty list if there are none.
+        Can specify a column if you only wish to get values from a certain
+        column.
         """
         sheet = self.handler.get_doc_contents()
         try:
-            return sheet["values"]
+            values = sheet["values"]
         except KeyError:
             return []
+
+        if column:
+            column_index = self.attributes.movie_list.get_cat_indexes()[column]
+            return [i[column_index] for i in values]
+        else:
+            return values
 
     def remove_row_not_listed(self, values: List[str], column: int,
                               ignore: List[List[str]]) -> bool:
@@ -36,14 +45,9 @@ class SheetsHelper:
         ignore, you must pass the exact string representation of the entire row.
         """
 
-        if not values:
-            if not self.attributes.links:
-                return False
-            return True
-
         removal_list = []
 
-        contents = self.handler.get_doc_contents()["values"]
+        contents = self.get_values()
 
         for k, i in enumerate(contents):
             if i in ignore:
@@ -54,7 +58,27 @@ class SheetsHelper:
         removal_list.reverse()
 
         for i in removal_list:
-            self.handler.remove_row(i, i+1)
+            self.handler.remove_row(i, i + 1)
+
+        return True
+
+    def remove_row_listed(self, values: List[str], column: int):
+        """
+        Remove a row if the contents of one of its column matches a value/s.
+        """
+
+        removal_list = []
+
+        contents = self.get_values()
+
+        for k, i in enumerate(contents):
+            if any([j in i[column] for j in values]):
+                removal_list.append(k)
+
+        removal_list.reverse()
+
+        for i in removal_list:
+            self.handler.remove_row(i, i + 1)
 
         return True
 
@@ -69,6 +93,30 @@ class SheetsHelper:
                                        end_row=1)
         self.handler.set_alignment()
 
+    def update_watched(self, values: List[str]):
+        """
+        Checks values in a column and updates them if they are different from
+        a the value entered.
+        """
+
+        column_id = self.attributes.movie_list.get_cat_indexes()["Watched"]
+        row_indexes = []
+
+        for k, i in enumerate(self.get_values(column="Link")):
+            if any(j in i for j in values):
+                row_indexes.append(k)
+
+        for i, j in enumerate(self.get_values(column="Watched")):
+            if i in row_indexes:
+                if j != "TRUE":
+                    self.handler.update_value(value=[["TRUE"]],
+                                              start_index=(column_id, i),
+                                              stop_index=(column_id, i))
+            else:
+                self.handler.update_value(value=[["FALSE"]],
+                                          start_index=(column_id, i),
+                                          stop_index=(column_id, i))
+
     def write_existing(self):
         """
         Format and write to an already existing sheet.
@@ -76,21 +124,18 @@ class SheetsHelper:
 
         values = self.attributes.movie_list.get_movies_list(
             attributes_key=False)
-        check_links = self.attributes.links
         check_column = self.attributes.movie_list.get_cat_indexes()["Link"]
         categories = self.attributes.movie_list.get_categories()
         ignore_column = [categories]
 
-        # It's important to store the output of remove_row_not_listed
-        # because it returns False if the sheet is empty. If the Sheet's
-        # empty, we need to add headers to the top.
-        sheet_full = self. \
-            remove_row_not_listed(values=check_links,
-                                  column=check_column,
-                                  ignore=ignore_column)
+        self.remove_row_not_listed(values=self.attributes.links,
+                                   column=check_column,
+                                   ignore=ignore_column)
 
-        if not sheet_full:
+        if not self.get_values():
             values.insert(0, categories)
+        else:
+            self.update_watched(values=self.attributes.watched_links)
 
         self.format_sheet()
         self.handler.append_sheet(values=values)
