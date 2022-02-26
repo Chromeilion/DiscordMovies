@@ -29,7 +29,7 @@ class CsvHelper:
             return True
         return False
 
-    def get_content(self) -> List[List[str]]:
+    def get_values(self) -> List[List[str]]:
         """
         Get the contents of the CSV file.
         """
@@ -52,12 +52,12 @@ class CsvHelper:
 
         with open(self.name, "r+", newline="") as f:
             writer = csv.writer(f)
-            file_contents = self.get_content()
+            file_contents = self.get_values()
 
             if not file_contents:
                 writer.writerow(categories)
                 f.flush()
-                file_contents = self.get_content()
+                file_contents = self.get_values()
 
             if file_contents[0] != categories:
                 if len(file_contents) > 0:

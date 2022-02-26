@@ -120,16 +120,18 @@ max_messages = args.max_messages
 if output in sheet_outs:
     discordmovies.DiscordMovies(discord_auth_token=token,
                                 bot=bot,
-                                doc_name=filename).discord_to_sheets(
+                                doc_name=filename).discord_to_file(
         channel_id=channel_id,
         sheet_id=sheet_id,
         max_messages=max_messages,
-        tmdb_api_key=tmdb_api_key)
+        tmdb_api_key=tmdb_api_key,
+        filetype="sheet")
 
 if output in csv_outs:
     discordmovies.DiscordMovies(discord_auth_token=token,
                                 bot=bot,
-                                doc_name=filename).discord_to_csv(
+                                doc_name=filename).discord_to_file(
         channel_id=channel_id,
         max_messages=max_messages,
-        tmdb_api_key=tmdb_api_key)
+        tmdb_api_key=tmdb_api_key,
+        filetype="csv")

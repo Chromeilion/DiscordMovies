@@ -19,61 +19,40 @@ class DiscordMovies:
         self.bot = bot
         self.attributes = DiscordMoviesAttributes(name=doc_name)
 
-    def discord_to_sheets(self, channel_id: Union[str, int],
-                          sheet_id: Union[str, int] = None,
-                          max_messages: int = 100,
-                          tmdb_api_key: str = None):
+    def discord_to_file(self, filetype: str,
+                        channel_id: Union[str, int] = None,
+                        sheet_id: Union[str, int] = None,
+                        max_messages: int = 100,
+                        tmdb_api_key: str = None):
         """
-        Takes all links from a discord channel and creates a Google Sheets
-        document from them. If the document exists, it will only add links
-        which do not exist already.
+        Extract all movies from a Discord channel and save them to a Google
+        Sheet or CSV.
         """
-        from discordmovies.fileutils.sheetshelper import SheetsHelper
 
-        sheets_helper = SheetsHelper(attributes=self.attributes,
-                                     spreadsheet_id=sheet_id)
+        if filetype == "sheet":
+            from discordmovies.fileutils.sheetshelper import SheetsHelper
 
-        if sheets_helper.check_existence():
-            if sheets_helper.check_existence():
-                if not self.attributes.movie_list:
-                    self.get_links(channel_id=channel_id,
-                                   max_messages=max_messages,
-                                   tmdb_api_key=tmdb_api_key,
-                                   current_content=sheets_helper.get_values())
-                sheets_helper.write_existing()
-            else:
-                if not self.attributes.movie_list:
-                    self.get_links(channel_id=channel_id,
-                                   max_messages=max_messages,
-                                   tmdb_api_key=tmdb_api_key)
-                sheets_helper.write_new()
+            helper = SheetsHelper(attributes=self.attributes,
+                                  spreadsheet_id=sheet_id)
+        elif filetype == "csv":
+            from discordmovies.fileutils.csvhelper import CsvHelper
+            helper = CsvHelper(self.attributes)
+        else:
+            raise ValueError("filetype does not match any supported output.")
 
-    def discord_to_csv(self, channel_id: Union[str, int],
-                       max_messages: int = 100,
-                       tmdb_api_key: str = None):
-        """
-        Takes all links from a discord channel, parses them,
-        and dumps them into a CSV file.
-        """
-        from discordmovies.fileutils.csvhelper import CsvHelper
-        csv_helper = CsvHelper(self.attributes)
-
-        if csv_helper.exists():
+        if helper.exists():
             if not self.attributes.movie_list:
                 self.get_links(channel_id=channel_id,
                                max_messages=max_messages,
                                tmdb_api_key=tmdb_api_key,
-                               current_content=csv_helper.get_content())
-
-            print("CSV file exists, appending new values.")
-            csv_helper.write_existing()
+                               current_content=helper.get_values())
+            helper.write_existing()
         else:
             if not self.attributes.movie_list:
                 self.get_links(channel_id=channel_id,
                                max_messages=max_messages,
                                tmdb_api_key=tmdb_api_key)
-            print("No CSV file found, creating new one.")
-            csv_helper.write_new()
+            helper.write_new()
 
     def get_links(self, channel_id: Union[str, int], max_messages: int = 100,
                   tmdb_api_key: str = None,

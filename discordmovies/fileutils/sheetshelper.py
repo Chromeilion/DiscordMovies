@@ -15,7 +15,7 @@ class SheetsHelper:
         self.handler = DocsHandler(spreadsheet_id=spreadsheet_id)
         self.handler.setup_docs()
 
-    def check_existence(self) -> bool:
+    def exists(self) -> bool:
         return self.handler.check_existence()
 
     def get_values(self) -> List[List[str]]:
