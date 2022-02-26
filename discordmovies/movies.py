@@ -14,7 +14,7 @@ class MovieCategories:
         if categories is None:
             self.categories = ["Poster", "Title", "Genres", "Runtime",
                                "Trailer", "User Score", "ID", "Link",
-                               "Date Suggested", "User"]
+                               "Date Suggested", "User", "Watched"]
         else:
             self.categories = categories
 
@@ -318,3 +318,15 @@ class MovieList(MovieCategories):
             for i in self:
                 if value in i[attribute]:
                     self.remove(i)
+
+    def mark_watched(self, watched_links: List[str]):
+        """
+        Marks movies as watched if they can be found on a list of links, and
+        not watched if they cannot be found.
+        """
+
+        for i in self:
+            if any(j in i["Link"] for j in watched_links):
+                i["Watched"] = "True"
+            else:
+                i["Watched"] = "False"

@@ -23,6 +23,11 @@ parser.add_argument('--channel-id', action='store', type=str,
                     help='The ID of an existing Google Sheets file if you '
                          'want to use one.')
 
+parser.add_argument('--watched-channel-id', action='store', type=str,
+                    help='The ID of the channel where links to watched movies'
+                         'are sent.',
+                    default=None)
+
 parser.add_argument('--filename', action='store', type=str,
                     help='The name to be used when creating a Google Sheet or '
                          'CSV file.',
@@ -114,24 +119,36 @@ if not args.tmdb_api_key:
 else:
     tmdb_api_key = args.tmdb_api_key
 
+if not args.watched_channel_id:
+    if "WATCHED_CHANNEL_ID" in os.environ:
+        watched_channel_id = os.environ["WATCHED_CHANNEL_ID"]
+        print("Watched channel ID loaded from environment.")
+    else:
+        print("No watched channel ID found, continuing without it.")
+        watched_channel_id = None
+else:
+    watched_channel_id = args.watched_channel_id
+
 filename = args.filename
 max_messages = args.max_messages
-
+movies = discordmovies.DiscordMovies(
+    discord_auth_token=token,
+    bot=bot,
+    doc_name=filename
+)
 if output in sheet_outs:
-    discordmovies.DiscordMovies(discord_auth_token=token,
-                                bot=bot,
-                                doc_name=filename).discord_to_file(
+    movies.discord_to_file(
         channel_id=channel_id,
+        watched_channel_id=watched_channel_id,
         sheet_id=sheet_id,
         max_messages=max_messages,
         tmdb_api_key=tmdb_api_key,
         filetype="sheet")
 
 if output in csv_outs:
-    discordmovies.DiscordMovies(discord_auth_token=token,
-                                bot=bot,
-                                doc_name=filename).discord_to_file(
+    movies.discord_to_file(
         channel_id=channel_id,
+        watched_channel_id=watched_channel_id,
         max_messages=max_messages,
         tmdb_api_key=tmdb_api_key,
         filetype="csv")
