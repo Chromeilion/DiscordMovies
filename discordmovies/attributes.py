@@ -9,8 +9,10 @@ class DiscordMoviesAttributes:
 
     def __init__(self, name: str = "discordmovies",
                  movie_list: MovieList = MovieList(),
-                 links: List[str] = None):
+                 links: List[str] = None,
+                 watched_links: List[str] = None):
 
         self.movie_list = movie_list
         self.links = links
         self.name = name
+        self.watched_links = watched_links
