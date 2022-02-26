@@ -1,6 +1,6 @@
 from discordmovies.fileutils.docsutils import DocsHandler
 from typing import List
-from discordmovies.discordmoviesattributes import DiscordMoviesAttributes
+from discordmovies.attributes import DiscordMoviesAttributes
 
 
 class SheetsHelper:

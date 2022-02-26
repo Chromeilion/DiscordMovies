@@ -1,7 +1,7 @@
 import csv
 import os
 from typing import List
-from discordmovies.discordmoviesattributes import DiscordMoviesAttributes
+from discordmovies.attributes import DiscordMoviesAttributes
 
 
 class CsvHelper:

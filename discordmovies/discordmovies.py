@@ -1,7 +1,7 @@
 from discordmovies.parser import Parser
 from typing import Union
 from discordmovies.movies import Movie
-from discordmovies.discordmoviesattributes import DiscordMoviesAttributes
+from discordmovies.attributes import DiscordMoviesAttributes
 from discordmovies.scrapper import Scrapper
 
 
