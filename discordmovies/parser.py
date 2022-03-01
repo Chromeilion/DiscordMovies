@@ -24,6 +24,7 @@ class Parser:
                         links.append({"Link": k,
                                       "User": j['author']['username'],
                                       "Date Suggested": j['timestamp']})
+
         return links
 
     @staticmethod

@@ -1,4 +1,4 @@
-from discordmovies.fileutils.docsutils import DocsHandler
+from discordmovies.filemodules.googleutils import DocsHandler
 from typing import List, Union
 from discordmovies.attributes import DiscordMoviesAttributes
 
@@ -95,8 +95,7 @@ class SheetsHelper:
 
     def update_watched(self, values: List[str]):
         """
-        Checks values in a column and updates them if they are different from
-        a the value entered.
+        Checks values in watched column and updates them if they've changed.
         """
 
         column_id = self.attributes.movie_list.get_cat_indexes()["Watched"]
@@ -121,7 +120,7 @@ class SheetsHelper:
 
     def write_existing(self):
         """
-        Format and write to an already existing sheet.
+        Write to an already existing sheet.
         """
 
         values = self.attributes.movie_list.get_movies_list(

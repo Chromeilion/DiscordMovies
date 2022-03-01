@@ -32,12 +32,12 @@ class DiscordMovies:
         """
 
         if filetype == "sheet":
-            from discordmovies.fileutils.sheetshelper import SheetsHelper
+            from discordmovies.filemodules.sheetshelper import SheetsHelper
 
             helper = SheetsHelper(attributes=self.attributes,
                                   spreadsheet_id=sheet_id)
         elif filetype == "csv":
-            from discordmovies.fileutils.csvhelper import CsvHelper
+            from discordmovies.filemodules.csvhelper import CsvHelper
             helper = CsvHelper(self.attributes)
         else:
             raise ValueError("filetype does not match any supported output.")
