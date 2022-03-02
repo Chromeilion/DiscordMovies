@@ -120,7 +120,9 @@ class SheetsHelper:
 
     def write_existing(self):
         """
-        Write to an already existing sheet.
+        Write to an already existing sheet. All new values are appended to the
+        end of the sheet. Additionally, the watched attribute is updated for
+        all films.
         """
 
         values = self.attributes.movie_list.get_movies_list(
@@ -138,7 +140,6 @@ class SheetsHelper:
         else:
             self.update_watched(values=self.attributes.watched_links)
 
-        self.format_sheet()
         self.handler.append_sheet(values=values)
 
     def write_new(self):
