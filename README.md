@@ -10,15 +10,19 @@ would like to automate the process of collecting requests.
 - Pull all movies from a Discord channel and put them into a CSV or Google Sheet
 - Get metadata for each movie, including title, genre, who suggested it, when it 
 was suggested, rating, etc.
-- Append movies to an already existing Google Sheet or CSV. This operation will 
-not touch the existing movies and will only add ones which are not already 
-present in the file.
+- Append movies to an already existing Google Sheet or CSV, as well as update
+existing values.
 - Remove movies that are not present in Discord from an already existant Google 
 Sheets
 - Format Google Sheets so that images are rendered nicely and headers are sized 
 correctly
 - Keep track of what you've watched
 - Nearly all command-line arguments can also be passed as environment variables
+<details>
+<summary>What does it look like?</summary>
+<br>
+<img src="https://imgur.com/RHFrvoT.png" alt="Image of discordmovies sheet.">
+</details>
 
 ## What can discordmovies not do?
 - discordmovies does not monitor a Discord channel. When its done with its 
@@ -131,13 +135,10 @@ a reason why you want a site supported, feel free to open an issue.
 While the program produces good-looking spreadsheets by default, if you'd like 
 more control, you can use discordmovies in your own script by importing it.
 
-If you'd like to see how discordmovies can be used in a script, just check out 
-DiscordMovies.py for an example.
-
-Some submodules are quite self-sufficient, like docsutils for example, which 
-could be used in all kinds of contexts when you just need to deal with 
-Google sheets.
-
+Feel free to have a look around the source code, most of it shouldn't be hard
+to understand. I've tried to make certain portions of the code modular, so
+adding support for new output types for example is something that isn't hard 
+to do.
 
 # Contributing
 Anybody is welcome to contribute. Simply fork the repo and make a pull request.
