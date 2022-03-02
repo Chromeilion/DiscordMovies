@@ -114,7 +114,8 @@ class DocsHandler:
     def adjust_row_height(self, height: int, start_row: int = None,
                           end_row: int = None):
         """
-        Changes height of all rows to value given.
+        Changes height of all rows in the range between start_row and end_row
+        to value given.
         """
 
         requests = [
@@ -145,7 +146,7 @@ class DocsHandler:
     def set_alignment(self, hor_alignment: str = "CENTER",
                       ver_alignment: str = "MIDDLE", wrap: str = "WRAP"):
         """
-        Sets the formatting of cells.
+        Sets the alignment of all cells in the sheet.
         """
 
         requests = [
@@ -175,8 +176,8 @@ class DocsHandler:
 
     def remove_row(self, start: int, stop: int):
         """
-        Removes a range of rows in a spreadsheet. Start and stop can be the
-        same value if you just want to remove one row.
+        Removes a range of rows in a spreadsheet. To remove one row, make start
+        the row you want to remove, and stop the next row.
         """
 
         requests = [

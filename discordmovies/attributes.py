@@ -12,6 +12,11 @@ class DiscordMoviesAttributes:
                  links: List[str] = None,
                  watched_links: List[str] = None):
 
+        if links is None:
+            links = []
+        if watched_links is None:
+            watched_links = []
+
         self.movie_list = movie_list
         self.links = links
         self.name = name

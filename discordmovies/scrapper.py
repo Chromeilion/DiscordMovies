@@ -19,6 +19,10 @@ class Scrapper:
         self.movie = None
 
     def check_token(self):
+        """
+        Check if a discord token is valid.
+        """
+
         r = requests.get(f"https://discordapp.com/api/v9/users/@me",
                          headers=self.headers)
         if r.status_code == 401:
@@ -29,7 +33,7 @@ class Scrapper:
     def get_messages(self, channel_id: Union[int, str], auth: Union[int, str],
                      max_messages: int = 100, bot: bool = True) -> list:
         """
-        Get all messages from a channel as a list of dictionaries.
+        Get all messages from a Discord channel as a list of dictionaries.
         """
 
         if bot:
@@ -75,10 +79,8 @@ class Scrapper:
     def get_metadata(self, movie: Movie,
                      omdb_api_key: str = None,) -> Union[list, None]:
         """
-        Takes a link from a supported website and returns a list containing
-        the metadata for the film/series.
-        The list is in the order: [Image, Name, Genre, Length, Trailer, Score]
-        If metadata cannot be found, raises MovieIdentityError.
+        Takes a Movie object which has a link in it and adds as much metadata
+        as it can to it, trying to fill in the other attributes.
         """
 
         self.movie = movie
@@ -130,7 +132,7 @@ class Scrapper:
                                  json={'query': query, 'variables': variables})
 
         if response.status_code != 200:
-            # More work should be done here
+            # More work should be done here for better error handling.
             return None
 
         response_loaded = json.loads(response.content)
@@ -139,7 +141,7 @@ class Scrapper:
 
     def get_mal(self, content_id: int, sleep_time: float = 0.5):
         """
-        Take MAL link and return metadata for that entry. Uses jikan.moe.
+        Take MAL link and fill metadata for that entry. Uses jikan.moe.
         """
         import time
 
@@ -188,6 +190,7 @@ class Scrapper:
         else:
             title = content["title_english"]
 
+        # Fill in all the attributes into the movie object.
         self.movie["Poster"] = content["images"]["jpg"]["image_url"]
         self.movie["Title"] = title
         self.movie["Genres"] = genres
@@ -199,7 +202,8 @@ class Scrapper:
     def get_imdb(self, content_id: int, omdb_api_key: str):
         """
         Gets metadata from tmdb given an imdb link. Could
-        technically work with a lot more than just imdb.
+        technically work with a lot more than just imdb since it uses
+        omdb.
         """
 
         find_r = requests.get(f"https://api.themoviedb.org/3/find"

@@ -9,8 +9,8 @@ from google.auth.exceptions import RefreshError
 
 class Creds:
     """
-    Handles Google Docs credentials and scopes for DocsHandler. Can be
-    used to load them from a file, save them to a file,  and to verify their
+    Handles Google Docs credentials and scopes. Can be used to load credentials
+    from a file, save them to a file, to renew them, and to verify their
     integrity.
     """
 
@@ -78,10 +78,14 @@ class Creds:
                 try:
                     self.creds.refresh(Request())
                 except RefreshError as e:
-                    raise RefreshError("Unable to refresh user token. Try deleting the user token and then recreating "
-                                       "it. This could be caused by having the Google project OAuth publishing status "
-                                       "set to 'testing' try setting it to 'in production', this makes it so that "
-                                       "tokens don't expire.") from e
+                    raise RefreshError("Unable to refresh user token. Try "
+                                       "deleting the user token and then "
+                                       "recreating it. This could be caused "
+                                       "by having the Google project OAuth "
+                                       "publishing status set to 'testing' "
+                                       "try setting it to 'in production', "
+                                       "this makes it so that tokens don't "
+                                       "expire.") from e
 
             else:
                 if os.path.exists('credentials.json'):

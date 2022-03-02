@@ -137,22 +137,38 @@ class MovieList(MovieCategories):
 
     @staticmethod
     def check_movie(item) -> bool:
+        """
+        Check if an item is of the Movie class.
+        """
         if not isinstance(item, Movie):
-            raise TypeError("All items must be instances of the Movie class")
+            return False
         return True
 
     def append(self, item: Movie):
-        self.check_movie(item)
+        """
+        Append a movie to the list.
+        """
+
+        if not self.check_movie(item):
+            raise TypeError("Item must be a Movie object.")
+
         self.movies.append(item)
 
     def append_with_metadata(self, item: Movie, omdb_api_key: str):
-        self.check_movie(item)
+        """
+        Append a movie to the list, and also fill the movies metadata.
+        """
+
+        if not self.check_movie(item):
+            raise TypeError("Item must be a Movie object.")
+
         try:
             item.fill_metadata(omdb_api_key)
             self.movies.append(item)
 
         except MovieIdentityError:
-            print(f"cannot insert {item['Link']}, skipping")
+            print(f"cannot insert {item['Link']}, getting metadata failed, "
+                  f"skipping")
 
     def remove(self, movie: Movie):
         self.movies.remove(movie)
@@ -164,10 +180,13 @@ class MovieList(MovieCategories):
         the movie Joker if it is in the list.
 
         Partial matches are also returned.
+
+        This method hasn't really been tested, so it may be buggy.
         """
 
         if not self.movies:
-            raise IndexError("No movies in list")
+            print("No movies in list!")
+            return []
 
         if attribute not in self.movies[0].get_categories():
             raise AttributeError("Attribute not found!")
@@ -187,11 +206,14 @@ class MovieList(MovieCategories):
         """
         Get a list of all movies, can add an attributes key to the first
         position of the list. By default, has all attributes, however you can
-        choose which ones you'd like with a list. Automatically formats
-        images for Google Sheets. When formatting, transformations are not
-        in-place.
+        choose which ones you'd like with a list.
+
+        By default, formats images for Google Sheets. When formatting,
+        transformations are not in-place, the output is a copy.
         """
+
         if not self.movies:
+            print("No movies in list!")
             return []
 
         if attributes is None:
@@ -239,9 +261,19 @@ class MovieList(MovieCategories):
     def merge_duplicates(self, ignore: List[str] = None,
                          attribute: str = "Title"):
         """
-        Checks for duplicate entries. If any are found, they are combined. The
-        ignore list is a list of attributes which should not be combined. In
-        this case, the first attribute found will be taken.
+        Checks for duplicate entries. If any are found, they are combined.
+
+        The ignore list is a list of attributes which should not be combined.
+        In this case, the first attribute found will be taken, and attributes
+        which are not ignored will be combined.
+
+        For example, with the two attributes 'Title' and 'Link', when ignoring
+        the 'Title' attribute, two films would be combined such that the 'Title'
+        attribute of the first is used, meaning in the combined cell there's
+        only a single value for 'Title', even if the values were different.
+        Meanwhile, the attribute 'Link' would have two values, one from each
+        movie.
+
         You can specify what attribute to use when searching for duplicates
         with the variable "attribute". By default, the title is used.
         """
@@ -250,9 +282,9 @@ class MovieList(MovieCategories):
             ignore = ["Poster", "Title", "Runtime", "Trailer", "User Score",
                       "Date Suggested", "Genres"]
 
-        titles = [i.get_list([attribute]) for i in self]
+        attributes = [i.get_list([attribute]) for i in self]
 
-        duplicates = Parser().check_duplicates(titles)
+        duplicates = Parser().check_duplicates(attributes)
 
         categories = self.get_categories()
 
@@ -289,7 +321,8 @@ class MovieList(MovieCategories):
 
     def format_images(self, attribute: Union[str, List[str]] = "Poster"):
         """
-        Formats one or multiple attributes
+        Formats one or multiple attributes into a format good for Google Sheets
+        images.
         """
 
         for i in self:
