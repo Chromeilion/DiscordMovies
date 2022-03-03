@@ -10,32 +10,41 @@ class SheetsHelper:
     """
 
     def __init__(self, attributes: DiscordMoviesAttributes,
-                 spreadsheet_id: str = None):
+                 spreadsheet_id: str = None, reformat: bool = False):
         self.attributes = attributes
         self.handler = DocsHandler(spreadsheet_id=spreadsheet_id)
         self.handler.setup_docs()
+        self.values = None
+        self.reformat = reformat
 
     def exists(self) -> bool:
         return self.handler.check_existence()
 
-    def get_values(self, column: str = None) -> Union[List[List[str]],
-                                                      List[str]]:
+    def get_values(self, column: str = None,
+                   force_recalc: bool = False) -> Union[List[List[str]],
+                                                        List[str]]:
         """
         Get all values from the sheet. Returns an empty list if there are none.
         Can specify a column if you only wish to get values from a certain
         column.
         """
-        sheet = self.handler.get_doc_contents()
-        try:
-            values = sheet["values"]
-        except KeyError:
-            return []
 
-        if column:
-            column_index = self.attributes.movie_list.get_cat_indexes()[column]
-            return [i[column_index] for i in values]
+        if self.values is None:
+            sheet = self.handler.get_doc_contents()
+            try:
+                self.values = sheet["values"]
+            except KeyError:
+                self.values = []
+                return []
+
+            if column:
+                column_index = self.attributes.movie_list.get_cat_indexes()[column]
+                return [i[column_index] for i in self.values]
+            else:
+                return self.values
+
         else:
-            return values
+            return self.values
 
     def remove_row_not_listed(self, values: List[str], column: int,
                               ignore: List[List[str]]) -> bool:
@@ -92,6 +101,7 @@ class SheetsHelper:
         self.handler.adjust_row_height(height=first_row_height, start_row=0,
                                        end_row=1)
         self.handler.set_alignment()
+        self.handler.freeze_row(1)
 
     def update_watched(self, values: List[str]):
         """
@@ -118,15 +128,33 @@ class SheetsHelper:
                                           start_index=(column_id, i),
                                           stop_index=(column_id, i))
 
+    def reformat_sheet(self):
+        """
+        Re-formats the sheet by deleting all values and reinserting them.
+        """
+
+        values = self.get_values()
+        self.handler.clear_sheet()
+        self.format_sheet()
+        self.handler.append_sheet(values)
+
     def write_existing(self):
         """
         Write to an already existing sheet. All new values are appended to the
         end of the sheet. Additionally, the watched attribute is updated for
         all films.
+
+        When reformat is set to True, the entire sheet will be recreated with
+        correct formatting. This involves deleting all cells and then putting
+        them in again.
         """
+
+        if self.reformat:
+            self.reformat_sheet()
 
         values = self.attributes.movie_list.get_movies_list(
             attributes_key=False)
+
         check_column = self.attributes.movie_list.get_cat_indexes()["Link"]
         categories = self.attributes.movie_list.get_categories()
         ignore_column = [categories]

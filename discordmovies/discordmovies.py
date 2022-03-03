@@ -25,7 +25,8 @@ class DiscordMovies:
                         sheet_id: Union[str, int] = None,
                         max_messages: int = 100,
                         tmdb_api_key: str = None,
-                        remove_watched: bool = False):
+                        remove_watched: bool = False,
+                        reformat_sheet: bool = False):
         """
         Extract all movies from a Discord channel and save them to a Google
         Sheet or CSV.
@@ -35,7 +36,8 @@ class DiscordMovies:
             from discordmovies.filemodules.sheetshelper import SheetsHelper
 
             helper = SheetsHelper(attributes=self.attributes,
-                                  spreadsheet_id=sheet_id)
+                                  spreadsheet_id=sheet_id,
+                                  reformat=reformat_sheet)
         elif filetype == "csv":
             from discordmovies.filemodules.csvhelper import CsvHelper
             helper = CsvHelper(self.attributes)

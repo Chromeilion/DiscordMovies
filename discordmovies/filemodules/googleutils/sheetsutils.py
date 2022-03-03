@@ -38,7 +38,9 @@ class DocsHandler:
         """
 
         return self.service.spreadsheets().values().get(
-            spreadsheetId=self.spreadsheet_id, range="A:Z").execute()
+            spreadsheetId=self.spreadsheet_id, range="A:Z",
+            valueRenderOption="FORMULA"
+        ).execute()
 
     def create_sheet(self, title: str):
         """
@@ -218,6 +220,57 @@ class DocsHandler:
             valueInputOption="USER_ENTERED", body=body)
 
         request.execute()
+
+    def freeze_row(self, rows: int = 1):
+        """
+        Freeze n amount of rows at the top of the sheet.
+        """
+
+        requests = [
+            {
+                "updateSheetProperties": {
+                    "properties": {
+                        "gridProperties": {
+                            "frozenRowCount": rows
+                        }
+                    },
+                    "fields": "gridProperties.frozenRowCount"
+                }
+            }
+
+        ]
+
+        body = {
+            'requests': requests
+        }
+
+        self.service.spreadsheets().batchUpdate(
+            spreadsheetId=self.spreadsheet_id,
+            body=body).execute()
+
+    def clear_sheet(self):
+        """
+        Deletes all content in a sheet.
+        """
+
+        requests = [
+            {
+                "updateCells": {
+                    "range": {
+                    },
+                    "fields": "userEnteredValue"
+                }
+            }
+
+        ]
+
+        body = {
+            'requests': requests
+        }
+
+        self.service.spreadsheets().batchUpdate(
+            spreadsheetId=self.spreadsheet_id,
+            body=body).execute()
 
     @staticmethod
     def convert_a1(start_coordinate: Tuple[int, int],

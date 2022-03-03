@@ -50,6 +50,12 @@ parser.add_argument('--no-bot', action='store_true',
 parser.add_argument('--tmdb-api-key', action='store_true',
                     help='An API key for The Movie Database')
 
+parser.add_argument('--reformat-sheet', action='store_true',
+                    help='Whether the Google Sheet should be reformatted. This'
+                         'action creates a lot of writes so should not be left'
+                         'on by default.',
+                    default=False)
+
 args = parser.parse_args()
 
 load_dotenv()
@@ -146,6 +152,18 @@ else:
 if remove_watched:
     print("Watched movies will be removed.")
 
+if not args.reformat_sheet:
+    if "REFORMAT_SHEET" in os.environ:
+        reformat_sheet = os.environ["REFORMAT_SHEET"]
+        reformat_sheet = ast.literal_eval(reformat_sheet)
+    else:
+        reformat_sheet = False
+else:
+    reformat_sheet = True
+
+if remove_watched:
+    print("Watched movies will be removed.")
+
 filename = args.filename
 max_messages = args.max_messages
 
@@ -161,7 +179,8 @@ if output in sheet_outs:
         max_messages=max_messages,
         tmdb_api_key=tmdb_api_key,
         filetype="sheet",
-        remove_watched=remove_watched
+        remove_watched=remove_watched,
+        reformat_sheet=reformat_sheet
     )
 
 if output in csv_outs:
@@ -174,4 +193,6 @@ if output in csv_outs:
         watched_channel_id=watched_channel_id,
         max_messages=max_messages,
         tmdb_api_key=tmdb_api_key,
-        filetype="csv")
+        filetype="csv",
+        reformat_sheet=reformat_sheet
+    )
