@@ -54,6 +54,8 @@ class CsvHelper:
         link_index = self.attributes.movie_list.get_cat_indexes()[
             "Link"]
 
+        removal_list = []
+
         for k, i in enumerate(file_contents):
             if k == 0:
                 continue
@@ -64,6 +66,14 @@ class CsvHelper:
                 i[watched_index] = True
             else:
                 i[watched_index] = False
+
+            if not any([j in i[link_index] for j in self.attributes.links]):
+                removal_list.append(k)
+
+        if removal_list:
+            removal_list.reverse()
+            for i in removal_list:
+                del self.attributes.movie_list[i]
 
         self.write_new(values=file_contents)
 

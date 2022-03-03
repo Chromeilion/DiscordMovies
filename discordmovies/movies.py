@@ -185,7 +185,6 @@ class MovieList(MovieCategories):
         """
 
         if not self.movies:
-            print("No movies in list!")
             return []
 
         if attribute not in self.movies[0].get_categories():
@@ -213,7 +212,6 @@ class MovieList(MovieCategories):
         """
 
         if not self.movies:
-            print("No movies in list!")
             return []
 
         if attributes is None:

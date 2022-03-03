@@ -64,7 +64,7 @@ class SheetsHelper:
 
     def remove_row_listed(self, values: List[str], column: int):
         """
-        Remove a row if the contents of one of its column matches a value/s.
+        Remove a row if the contents of one of its columns matches a value/s.
         """
 
         removal_list = []
