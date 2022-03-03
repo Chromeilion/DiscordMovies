@@ -41,39 +41,40 @@ class CsvHelper:
 
     def write_existing(self):
         """
-        Write to an existing CSV file. Makes sure to append values instead of
-        overwriting old ones. Also checks for correct formatting.
+        Write to an existing CSV file. The file will be overwritten.
         """
 
         values = self.attributes.movie_list.get_movies_list(
-            format_images=False,
-            attributes_key=False)
-        categories = self.attributes.movie_list.get_categories()
+            format_images=False)
 
-        with open(self.name, "r+", newline="") as f:
-            writer = csv.writer(f)
-            file_contents = self.get_values()
+        file_contents = self.get_values()
+        file_contents.extend(values)
+        watched_index = self.attributes.movie_list.get_cat_indexes()[
+            "Watched"]
+        link_index = self.attributes.movie_list.get_cat_indexes()[
+            "Link"]
 
-            if not file_contents:
-                writer.writerow(categories)
-                f.flush()
-                file_contents = self.get_values()
+        for k, i in enumerate(file_contents):
+            if k == 0:
+                continue
+            if any([j in i[link_index] for j in
+                    self.attributes.watched_links]):
+                # My IDE is complaining to me about watched_index here. IDK
+                # what's wrong, perhaps something with type hints somewhere?
+                i[watched_index] = True
+            else:
+                i[watched_index] = False
 
-            if file_contents[0] != categories:
-                if len(file_contents) > 0:
-                    raise AttributeError("CSV File is incorrectly"
-                                         "formatted. Please create"
-                                         "a new one.")
+        self.write_new(values=file_contents)
 
-            for i in values:
-                writer.writerow(i)
-
-    def write_new(self):
+    def write_new(self, values: List[List[str]] = None):
         """
-        Creates a new CSV file and writes to it.
+        Creates a new CSV file and writes to it. Can also overwrite old files.
         """
 
-        values = self.attributes.movie_list.get_movies_list(format_images=False)
+        if values is None:
+            values = self.attributes.movie_list.get_movies_list(
+                format_images=False)
 
         with open(self.name, "w", newline="") as f:
             writer = csv.writer(f)
