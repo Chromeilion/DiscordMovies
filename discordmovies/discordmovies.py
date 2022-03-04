@@ -39,12 +39,12 @@ class DiscordMovies:
         Sheet or CSV.
         """
 
-        helper = FileHelper(filetype=filetype, attributes=self.attributes,
-                            sheet_id=sheet_id, reformat_sheet=reformat_sheet)
+        file = FileHelper(filetype=filetype, attributes=self.attributes,
+                          sheet_id=sheet_id, reformat_sheet=reformat_sheet)
 
-        if helper.exists():
+        if file.exists():
 
-            current_content = helper.get_values()
+            current_content = file.get_values()
 
             if current_content:
                 if current_content[0] != self.attributes.movie_list.\
@@ -65,7 +65,7 @@ class DiscordMovies:
                                tmdb_api_key=tmdb_api_key,
                                current_content=current_content,
                                remove_watched=remove_watched)
-            helper.write_existing(overwrite=overwrite)
+            file.write_existing(overwrite=overwrite)
         else:
             if not self.attributes.movie_list:
                 self.get_links(channel_id=channel_id,
@@ -73,7 +73,7 @@ class DiscordMovies:
                                max_messages=max_messages,
                                tmdb_api_key=tmdb_api_key,
                                remove_watched=remove_watched)
-            helper.write_new()
+            file.write_new()
 
     def get_links(self, channel_id: Union[str, int],
                   watched_channel_id: Union[str, int] = None,
