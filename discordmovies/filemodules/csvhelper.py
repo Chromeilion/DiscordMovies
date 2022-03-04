@@ -39,10 +39,12 @@ class CsvHelper:
             reader = csv.reader(f)
             return list(reader)
 
-    def write_existing(self):
+    def write_existing(self, overwrite: bool = False):
         """
         Write to an existing CSV file. The file will be overwritten.
         """
+        # Overwrite is a variable, but it does nothing at the moment. It's here
+        # mainly as a placeholder. Perhaps it could be used in the future.
 
         values = self.attributes.movie_list.get_movies_list(
             format_images=False)
