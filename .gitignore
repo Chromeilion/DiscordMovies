@@ -228,3 +228,6 @@ token.json
 
 # Dont really wanna put .idea in git
 .idea/*
+
+# CSV file's aren't part of the codebase
+*.csv
