@@ -16,7 +16,12 @@ class MovieCategories:
                                "Trailer", "User Score", "ID", "Link",
                                "Date Suggested", "User", "Watched"]
         else:
-            self.categories = categories
+            necessary_categories = ["Title", "Link"]
+            if all([i in categories for i in necessary_categories]):
+                self.categories = categories
+            else:
+                raise AttributeError("Title and Link categories must be "
+                                     "present.")
 
     def get_categories(self) -> List[str]:
         return self.categories
@@ -61,13 +66,15 @@ class Movie(MovieCategories):
     def __getitem__(self, key: str) -> str:
         return self.info[key]
 
-    def __setitem__(self, key: str, value: str):
+    def __setitem__(self, key: str, value: str) -> bool:
         if not isinstance(key, str):
             raise TypeError("The key must be a string in a Movie object.")
         if not isinstance(value, str):
             raise TypeError("The value must be a string in a Movie object.")
-
-        self.info[key] = value
+        try:
+            self.info[key] = value
+        except KeyError:
+            return False
 
     def items(self):
         return self.info.items()
@@ -241,20 +248,20 @@ class MovieList(MovieCategories):
         Fill metadata for all movies in list.
         """
         failures = []
+        if self:
+            for i in tqdm(self, unit=" movies",
+                          desc="gathering metadata"):
+                try:
+                    i.fill_metadata(omdb_api_key=tmdb_api_key)
+                except MovieIdentityError:
+                    failures.append(i)
 
-        for i in tqdm(self, unit=" movies",
-                      desc="gathering metadata"):
-            try:
-                i.fill_metadata(omdb_api_key=tmdb_api_key)
-            except MovieIdentityError:
-                failures.append(i)
+            if len(failures) > 0:
+                print("The following movies were not found:")
+                print('\n'.join(map(str, [i["Link"] for i in failures])))
 
-        if len(failures) > 0:
-            print("The following movies were not found:")
-            print('\n'.join(map(str, [i["Link"] for i in failures])))
-
-            for i in failures:
-                self.remove(i)
+                for i in failures:
+                    self.remove(i)
 
     def merge_duplicates(self, ignore: List[str] = None,
                          attribute: str = "Title"):
@@ -277,8 +284,7 @@ class MovieList(MovieCategories):
         """
 
         if ignore is None:
-            ignore = ["Poster", "Title", "Runtime", "Trailer", "User Score",
-                      "Date Suggested", "Genres"]
+            ignore = self.get_categories()
 
         attributes = [i.get_list([attribute]) for i in self]
 

@@ -3,6 +3,7 @@ from typing import Union
 from discordmovies.movies import Movie
 from discordmovies.attributes import DiscordMoviesAttributes
 from discordmovies.scrapper import Scrapper
+from typing import List
 
 
 class DiscordMovies:
@@ -13,11 +14,12 @@ class DiscordMovies:
     """
 
     def __init__(self, discord_auth_token: Union[str, int], bot: bool = True,
-                 doc_name: str = "discordmovies"):
+                 doc_name: str = "discordmovies", attributes: List[str] = None):
         self.scrapper = Scrapper()
         self.auth_token = discord_auth_token
         self.bot = bot
-        self.attributes = DiscordMoviesAttributes(name=doc_name)
+        self.attributes = DiscordMoviesAttributes(name=doc_name,
+                                                  attributes=attributes)
 
     def discord_to_file(self, filetype: str,
                         channel_id: Union[str, int],
@@ -32,27 +34,34 @@ class DiscordMovies:
         Sheet or CSV.
         """
 
-        if filetype == "sheet":
-            from discordmovies.filemodules.sheetshelper import SheetsHelper
-
-            helper = SheetsHelper(attributes=self.attributes,
-                                  spreadsheet_id=sheet_id,
-                                  reformat=reformat_sheet)
-        elif filetype == "csv":
-            from discordmovies.filemodules.csvhelper import CsvHelper
-            helper = CsvHelper(self.attributes)
-        else:
-            raise ValueError("filetype does not match any supported output.")
+        helper = self.get_helper(
+            output_type=filetype, sheet_id=sheet_id,
+            reformat_sheet=reformat_sheet)
 
         if helper.exists():
+
+            current_content = helper.get_values()
+
+            if current_content:
+                if current_content[0] != self.attributes.movie_list.\
+                        get_categories():
+                    print("Sheet formatting does not match current formatting "
+                          "settings. Sheet will be completely rewritten.")
+                    overwrite = True
+                    current_content = []
+                else:
+                    overwrite = False
+            else:
+                overwrite = False
+
             if not self.attributes.movie_list:
                 self.get_links(channel_id=channel_id,
                                watched_channel_id=watched_channel_id,
                                max_messages=max_messages,
                                tmdb_api_key=tmdb_api_key,
-                               current_content=helper.get_values(),
+                               current_content=current_content,
                                remove_watched=remove_watched)
-            helper.write_existing()
+            helper.write_existing(overwrite=overwrite)
         else:
             if not self.attributes.movie_list:
                 self.get_links(channel_id=channel_id,
@@ -61,6 +70,20 @@ class DiscordMovies:
                                tmdb_api_key=tmdb_api_key,
                                remove_watched=remove_watched)
             helper.write_new()
+
+    def get_helper(self, output_type: str, sheet_id: str = None,
+                   reformat_sheet: bool = None):
+        if output_type == "sheet":
+            from discordmovies.filemodules.sheetshelper import SheetsHelper
+
+            return SheetsHelper(attributes=self.attributes,
+                                spreadsheet_id=sheet_id,
+                                reformat=reformat_sheet)
+        elif output_type == "csv":
+            from discordmovies.filemodules.csvhelper import CsvHelper
+            return CsvHelper(self.attributes)
+        else:
+            raise ValueError("filetype does not match any supported output.")
 
     def get_links(self, channel_id: Union[str, int],
                   watched_channel_id: Union[str, int] = None,

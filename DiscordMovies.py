@@ -56,6 +56,12 @@ parser.add_argument('--reformat-sheet', action='store_true',
                          'on by default.',
                     default=False)
 
+parser.add_argument('--attributes', action='store',
+                    help='What attributes each movie should have. Things like'
+                         'User Score, Genres and Runtime. By default will have'
+                         'all available attributes.',
+                    default=None)
+
 args = parser.parse_args()
 
 load_dotenv()
@@ -161,38 +167,40 @@ if not args.reformat_sheet:
 else:
     reformat_sheet = True
 
+if args.attributes is None:
+    if "ATTRIBUTES" in os.environ:
+        attributes = os.environ["ATTRIBUTES"]
+        attributes = ast.literal_eval(attributes)
+    else:
+        attributes = args.attributes
+else:
+    attributes = ast.literal_eval(args.attributes)
+
 if remove_watched:
     print("Watched movies will be removed.")
 
 filename = args.filename
 max_messages = args.max_messages
 
+output_types = []
 if output in sheet_outs:
+    output_types.append("sheet")
+if output in csv_outs:
+    output_types.append("csv")
+
+for i in output_types:
     discordmovies.DiscordMovies(
         discord_auth_token=token,
         bot=bot,
-        doc_name=filename
+        doc_name=filename,
+        attributes=attributes
     ).discord_to_file(
         channel_id=channel_id,
         watched_channel_id=watched_channel_id,
         sheet_id=sheet_id,
         max_messages=max_messages,
         tmdb_api_key=tmdb_api_key,
-        filetype="sheet",
+        filetype=i,
         remove_watched=remove_watched,
-        reformat_sheet=reformat_sheet
-    )
-
-if output in csv_outs:
-    discordmovies.DiscordMovies(
-        discord_auth_token=token,
-        bot=bot,
-        doc_name=filename
-    ).discord_to_file(
-        channel_id=channel_id,
-        watched_channel_id=watched_channel_id,
-        max_messages=max_messages,
-        tmdb_api_key=tmdb_api_key,
-        filetype="csv",
         reformat_sheet=reformat_sheet
     )

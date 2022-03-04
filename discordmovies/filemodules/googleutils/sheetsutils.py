@@ -98,7 +98,7 @@ class DocsHandler:
             return False
         return True
 
-    def append_sheet(self, values: List[List[str]]):
+    def append_sheet(self, values: List[List[str]], quiet: bool = False):
         """
         Append a list of values to a sheet.
         """
@@ -109,9 +109,10 @@ class DocsHandler:
         result = self.service.spreadsheets().values().append(
             spreadsheetId=self.spreadsheet_id, range="A:Z",
             valueInputOption="USER_ENTERED", body=body).execute()
-        print('{0} cells appended.'.format(result
-                                           .get('updates')
-                                           .get('updatedCells')))
+        if not quiet:
+            print('{0} cells appended.'.format(result
+                                               .get('updates')
+                                               .get('updatedCells')))
 
     def adjust_row_height(self, height: int, start_row: int = None,
                           end_row: int = None):

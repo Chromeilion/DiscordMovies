@@ -29,7 +29,7 @@ class SheetsHelper:
         column.
         """
 
-        if self.values is None:
+        if self.values is None or force_recalc:
             sheet = self.handler.get_doc_contents()
             try:
                 self.values = sheet["values"]
@@ -107,60 +107,64 @@ class SheetsHelper:
         """
         Checks values in watched column and updates them if they've changed.
         """
+        if "Watched" in self.attributes.movie_list.get_categories():
+            column_id = self.attributes.movie_list.get_cat_indexes()["Watched"]
+            row_indexes = []
 
-        column_id = self.attributes.movie_list.get_cat_indexes()["Watched"]
-        row_indexes = []
+            for k, i in enumerate(self.get_values(column="Link")):
+                if any(j in i for j in values):
+                    row_indexes.append(k)
 
-        for k, i in enumerate(self.get_values(column="Link")):
-            if any(j in i for j in values):
-                row_indexes.append(k)
-
-        for i, j in enumerate(self.get_values(column="Watched")):
-            if i == 0:
-                continue
-            if i in row_indexes:
-                if j != "TRUE":
-                    self.handler.update_value(value=[["TRUE"]],
+            for i, j in enumerate(self.get_values(column="Watched")):
+                if i == 0:
+                    continue
+                if i in row_indexes:
+                    if j != "TRUE":
+                        self.handler.update_value(value=[["TRUE"]],
+                                                  start_index=(column_id, i),
+                                                  stop_index=(column_id, i))
+                else:
+                    self.handler.update_value(value=[["FALSE"]],
                                               start_index=(column_id, i),
                                               stop_index=(column_id, i))
-            else:
-                self.handler.update_value(value=[["FALSE"]],
-                                          start_index=(column_id, i),
-                                          stop_index=(column_id, i))
+        else:
+            print("Watched column not found, watched movies not updated.")
 
     def reformat_sheet(self):
         """
         Re-formats the sheet by deleting all values and reinserting them.
         """
 
-        values = self.get_values()
+        values = self.get_values(force_recalc=True)
         self.handler.clear_sheet()
         self.format_sheet()
-        self.handler.append_sheet(values)
+        self.handler.append_sheet(values=values, quiet=True)
 
-    def write_existing(self):
+    def write_existing(self, overwrite: bool = False):
         """
         Write to an already existing sheet. All new values are appended to the
         end of the sheet. Additionally, the watched attribute is updated for
         all films.
 
-        When reformat is set to True, the entire sheet will be recreated with
-        correct formatting. This involves deleting all cells and then putting
-        them in again.
+        The overwrite option specifies whether the existing sheet's data should
+        be overwritten. It may be overwritten anyway if reformat is set to true.
+        Important to note is that only values being currently written to the
+        sheet will be on the sheet after a overwrite.
         """
 
-        if self.reformat:
-            self.reformat_sheet()
+        if overwrite:
+            self.handler.clear_sheet()
+            values = self.attributes.movie_list.get_movies_list()
+        else:
+            values = self.attributes.movie_list.get_movies_list(
+                attributes_key=False)
 
-        values = self.attributes.movie_list.get_movies_list(
-            attributes_key=False)
-
-        check_column = self.attributes.movie_list.get_cat_indexes()["Link"]
+        link_column = self.attributes.movie_list.get_cat_indexes()["Link"]
         categories = self.attributes.movie_list.get_categories()
         ignore_column = [categories]
 
         self.remove_row_not_listed(values=self.attributes.links,
-                                   column=check_column,
+                                   column=link_column,
                                    ignore=ignore_column)
 
         if not self.get_values():
@@ -169,6 +173,9 @@ class SheetsHelper:
             self.update_watched(values=self.attributes.watched_links)
 
         self.handler.append_sheet(values=values)
+
+        if self.reformat or overwrite:
+            self.reformat_sheet()
 
     def write_new(self):
         """
