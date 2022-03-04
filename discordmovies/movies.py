@@ -1,6 +1,6 @@
 from tqdm import tqdm
 from discordmovies.exceptions import MovieIdentityError
-from discordmovies.parser import Parser
+from discordmovies.utils import Utils
 from typing import Union, List, Dict
 import copy
 
@@ -124,9 +124,9 @@ class Movie(MovieCategories):
         """
         Get metadata for movie and store it.
         """
-        from discordmovies.scrapper import Scrapper
+        from discordmovies.inputmodules.metadata.metadata import Metadata
 
-        Scrapper().get_metadata(self, omdb_api_key)
+        Metadata().get_metadata(movie=self, omdb_api_key=omdb_api_key)
 
     def format_image(self, attribute: Union[str, List[str]] = "Poster"):
         """
@@ -319,7 +319,7 @@ class MovieList(MovieCategories):
 
         attributes = [i.get_list([attribute]) for i in self]
 
-        duplicates = Parser().check_duplicates(attributes)
+        duplicates = Utils().check_duplicates(attributes)
 
         categories = self.get_categories()
 

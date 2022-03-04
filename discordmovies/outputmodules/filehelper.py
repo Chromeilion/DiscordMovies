@@ -11,14 +11,14 @@ class FileHelper:
                  sheet_id: str = None, reformat_sheet: bool = None):
         self.filetype = filetype
         if self.filetype == "sheet":
-            from discordmovies.filemodules.sheetshelper import SheetsHelper
+            from discordmovies.outputmodules.sheetshelper import SheetsHelper
 
             self.helper = SheetsHelper(attributes=attributes,
                                        spreadsheet_id=sheet_id,
                                        reformat=reformat_sheet)
 
         elif self.filetype == "csv":
-            from discordmovies.filemodules.csvhelper import CsvHelper
+            from discordmovies.outputmodules.csvhelper import CsvHelper
             self.helper = CsvHelper(attributes)
         else:
             raise ValueError(

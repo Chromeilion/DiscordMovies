@@ -51,31 +51,32 @@ class CsvHelper:
 
         file_contents = self.get_values()
         file_contents.extend(values)
-        watched_index = self.attributes.movie_list.get_cat_indexes()[
-            "Watched"]
-        link_index = self.attributes.movie_list.get_cat_indexes()[
-            "Link"]
+        if "Watched" in self.attributes.movie_list.get_categories():
+            watched_index = self.attributes.movie_list.get_cat_indexes()[
+                "Watched"]
+            link_index = self.attributes.movie_list.get_cat_indexes()[
+                "Link"]
 
-        removal_list = []
+            removal_list = []
 
-        for k, i in enumerate(file_contents):
-            if k == 0:
-                continue
-            if any([j in i[link_index] for j in
-                    self.attributes.watched_links]):
-                # My IDE is complaining to me about watched_index here. IDK
-                # what's wrong, perhaps something with type hints somewhere?
-                i[watched_index] = True
-            else:
-                i[watched_index] = False
+            for k, i in enumerate(file_contents):
+                if k == 0:
+                    continue
+                if any([j in i[link_index] for j in
+                        self.attributes.watched_links]):
+                    # My IDE is complaining to me about watched_index here. IDK
+                    # what's wrong, perhaps something with type hints somewhere?
+                    i[watched_index] = True
+                else:
+                    i[watched_index] = False
 
-            if not any([j in i[link_index] for j in self.attributes.links]):
-                removal_list.append(k)
+                if not any([j in i[link_index] for j in self.attributes.links]):
+                    removal_list.append(k)
 
-        if removal_list:
-            removal_list.reverse()
-            for i in removal_list:
-                del self.attributes.movie_list[i]
+            if removal_list:
+                removal_list.reverse()
+                for i in removal_list:
+                    del self.attributes.movie_list[i]
 
         self.write_new(values=file_contents)
 

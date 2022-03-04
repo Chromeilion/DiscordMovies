@@ -1,4 +1,4 @@
-from discordmovies.filemodules.googleutils import DocsHandler
+from discordmovies.outputmodules.googleutils import DocsHandler
 from typing import List, Union
 from discordmovies.attributes import DiscordMoviesAttributes
 
@@ -116,7 +116,7 @@ class SheetsHelper:
                     row_indexes.append(k)
 
             for i, j in enumerate(self.get_values(column="Watched")):
-                if i == 0:
+                if i == self.attributes.movie_list.get_categories():
                     continue
                 if i in row_indexes:
                     if j != "TRUE":
@@ -163,16 +163,16 @@ class SheetsHelper:
         categories = self.attributes.movie_list.get_categories()
         ignore_column = [categories]
 
-        self.remove_row_not_listed(values=self.attributes.links,
-                                   column=link_column,
-                                   ignore=ignore_column)
+        if not overwrite:
+            self.remove_row_not_listed(values=self.attributes.links,
+                                       column=link_column,
+                                       ignore=ignore_column)
 
         if not self.get_values():
             values.insert(0, categories)
-        else:
-            self.update_watched(values=self.attributes.watched_links)
 
         self.handler.append_sheet(values=values)
+        self.update_watched(values=self.attributes.watched_links)
 
         if self.reformat or overwrite:
             self.reformat_sheet()
