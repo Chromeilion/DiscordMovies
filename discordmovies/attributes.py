@@ -11,7 +11,8 @@ class DiscordMoviesAttributes:
                  movie_list: MovieList = None,
                  links: List[str] = None,
                  watched_links: List[str] = None,
-                 attributes: List[str] = None):
+                 attributes: List[str] = None,
+                 exclude_attributes: List[str] = None):
 
         if links is None:
             links = []
@@ -20,10 +21,10 @@ class DiscordMoviesAttributes:
             watched_links = []
 
         if movie_list is None:
-            if attributes is None:
-                self.movie_list = MovieList()
-            else:
-                self.movie_list = MovieList(categories=attributes)
+            self.movie_list = MovieList(categories=attributes,
+                                        exclude_categories=exclude_attributes)
+        else:
+            self.movie_list = movie_list
 
         self.links = links
         self.name = name

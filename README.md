@@ -18,6 +18,8 @@ Sheets
 correctly
 - Keep track of what you've watched
 - Nearly all command-line arguments can also be passed as environment variables
+- Let you choose what attributes you want to see with either an include or 
+exclude list.
 <details>
 <summary>What does it look like?</summary>
 <br>

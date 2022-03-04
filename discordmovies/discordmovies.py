@@ -14,12 +14,15 @@ class DiscordMovies:
     """
 
     def __init__(self, discord_auth_token: Union[str, int], bot: bool = True,
-                 doc_name: str = "discordmovies", attributes: List[str] = None):
+                 doc_name: str = "discordmovies", attributes: List[str] = None,
+                 exclude_attributes: List[str] = None):
         self.scrapper = Scrapper()
         self.auth_token = discord_auth_token
         self.bot = bot
         self.attributes = DiscordMoviesAttributes(name=doc_name,
-                                                  attributes=attributes)
+                                                  attributes=attributes,
+                                                  exclude_attributes=
+                                                  exclude_attributes)
 
     def discord_to_file(self, filetype: str,
                         channel_id: Union[str, int],

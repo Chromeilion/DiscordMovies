@@ -59,7 +59,12 @@ parser.add_argument('--reformat-sheet', action='store_true',
 parser.add_argument('--attributes', action='store',
                     help='What attributes each movie should have. Things like'
                          'User Score, Genres and Runtime. By default will have'
-                         'all available attributes.',
+                         'all available attributes. Takes a list of strings.',
+                    default=None)
+
+parser.add_argument('--exclude-attributes', action='store',
+                    help='What attributes should be excluded from the sheet.'
+                         'Takes a list of strings.',
                     default=None)
 
 args = parser.parse_args()
@@ -176,6 +181,15 @@ if args.attributes is None:
 else:
     attributes = ast.literal_eval(args.attributes)
 
+if args.exclude_attributes is None:
+    if "EXCLUDE_ATTRIBUTES" in os.environ:
+        exclude_attributes = os.environ["EXCLUDE_ATTRIBUTES"]
+        exclude_attributes = ast.literal_eval(exclude_attributes)
+    else:
+        exclude_attributes = args.attributes
+else:
+    exclude_attributes = ast.literal_eval(args.exclude_attributes)
+
 if remove_watched:
     print("Watched movies will be removed.")
 
@@ -193,7 +207,8 @@ for i in output_types:
         discord_auth_token=token,
         bot=bot,
         doc_name=filename,
-        attributes=attributes
+        attributes=attributes,
+        exclude_attributes=exclude_attributes
     ).discord_to_file(
         channel_id=channel_id,
         watched_channel_id=watched_channel_id,

@@ -10,18 +10,38 @@ class MovieCategories:
     A class that contains the possible attributes a movie could have.
     """
 
-    def __init__(self, categories: List[str] = None):
-        if categories is None:
-            self.categories = ["Poster", "Title", "Genres", "Runtime",
+    def __init__(self, categories: List[str] = None,
+                 exclude_categories: List[str] = None):
+
+        self.all_categories = ["Poster", "Title", "Genres", "Runtime",
                                "Trailer", "User Score", "ID", "Link",
                                "Date Suggested", "User", "Watched"]
+
+        necessary_categories = ["Title", "Link"]
+
+        if categories is None:
+            self.categories = self.all_categories.copy()
+
         else:
-            necessary_categories = ["Title", "Link"]
-            if all([i in categories for i in necessary_categories]):
+            if all([i in categories for i in necessary_categories]) and all(
+                    [i in self.all_categories for i in categories]):
                 self.categories = categories
+
             else:
                 raise AttributeError("Title and Link categories must be "
-                                     "present.")
+                                     "present and categories must be "
+                                     "supported.")
+
+        if exclude_categories is not None:
+            if all([i not in necessary_categories for i in exclude_categories]
+                   ) and all([i in self.all_categories for i in
+                              exclude_categories]):
+                [self.categories.remove(i) for i in exclude_categories]
+
+            else:
+                raise AttributeError("Excluded categories must not be necessary"
+                                     "categories, and they must be real"
+                                     "categories.")
 
     def get_categories(self) -> List[str]:
         return self.categories
@@ -32,6 +52,13 @@ class MovieCategories:
             cat_dict[j] = i
 
         return cat_dict
+
+    def get_all_categories(self):
+        """
+        Get a list of all available categories.
+        """
+
+        return self.all_categories
 
     def check_attribute(self, attribute: str) -> bool:
         """
@@ -53,8 +80,10 @@ class Movie(MovieCategories):
     for getting movie metadata.
     """
 
-    def __init__(self, categories: List[str] = None, values: dict = None):
-        super().__init__(categories=categories)
+    def __init__(self, categories: List[str] = None, values: dict = None,
+                 exclude_categories: List[str] = None):
+        super().__init__(categories=categories,
+                         exclude_categories=exclude_categories)
         self.info = {}
         for i in self.categories:
             self.info[i] = "None"
@@ -71,10 +100,10 @@ class Movie(MovieCategories):
             raise TypeError("The key must be a string in a Movie object.")
         if not isinstance(value, str):
             raise TypeError("The value must be a string in a Movie object.")
-        try:
-            self.info[key] = value
-        except KeyError:
+
+        if key not in self.categories:
             return False
+        self.info[key] = value
 
     def items(self):
         return self.info.items()
@@ -123,8 +152,10 @@ class MovieList(MovieCategories):
     at once in various ways.
     """
 
-    def __init__(self, categories: List[str] = None, items: List[Movie] = None):
-        super().__init__(categories=categories)
+    def __init__(self, categories: List[str] = None, items: List[Movie] = None,
+                 exclude_categories: List[str] = None):
+        super().__init__(categories=categories,
+                         exclude_categories=exclude_categories)
         if items is None:
             self.movies = list()
         else:
