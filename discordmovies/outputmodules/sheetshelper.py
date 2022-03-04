@@ -115,8 +115,9 @@ class SheetsHelper:
                 if any(j in i for j in values):
                     row_indexes.append(k)
 
-            for i, j in enumerate(self.get_values(column="Watched")):
-                if i == self.attributes.movie_list.get_categories():
+            for i, j in enumerate(self.get_values(column="Watched",
+                                                  force_recalc=True)):
+                if j == self.attributes.movie_list.get_categories()[column_id]:
                     continue
                 if i in row_indexes:
                     if j != "TRUE":
@@ -172,7 +173,9 @@ class SheetsHelper:
             values.insert(0, categories)
 
         self.handler.append_sheet(values=values)
-        self.update_watched(values=self.attributes.watched_links)
+
+        if self.attributes.watched_links:
+            self.update_watched(values=self.attributes.watched_links)
 
         if self.reformat or overwrite:
             self.reformat_sheet()
