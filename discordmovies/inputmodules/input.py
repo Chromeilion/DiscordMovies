@@ -82,6 +82,9 @@ class Input:
 
         self.fill_movie_list(self.movie_channel_id)
         self.fill_links(self.movie_channel_id)
+        # There may be links sent twice, these should be combined.
+        self.attributes.movie_list.merge_duplicates(ignore=["Link"],
+                                                    attribute="Link")
 
         if self.current_content:
             self.remove_already_present()

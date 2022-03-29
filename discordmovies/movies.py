@@ -44,7 +44,7 @@ class MovieCategories:
                                      "categories.")
 
     def get_categories(self) -> List[str]:
-        return self.categories
+        return self.categories.copy()
 
     def get_cat_indexes(self) -> Dict[str, int]:
         cat_dict = {}
@@ -316,6 +316,9 @@ class MovieList(MovieCategories):
 
         if ignore is None:
             ignore = self.get_categories()
+            # Links should be saved most of the time to preserve the integrity
+            # of other functions.
+            ignore.remove('Link')
 
         attributes = [i.get_list([attribute]) for i in self]
 

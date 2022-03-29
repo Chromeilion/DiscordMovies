@@ -30,7 +30,10 @@ class SheetsHelper:
         """
 
         if self.values is None or force_recalc:
-            sheet = self.handler.get_doc_contents()
+            if self.exists():
+                sheet = self.handler.get_doc_contents()
+            else:
+                return []
             try:
                 self.values = sheet["values"]
             except KeyError:

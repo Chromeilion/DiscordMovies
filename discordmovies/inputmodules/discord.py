@@ -33,7 +33,8 @@ class Discord:
         if r.status_code == 401:
             raise ValueError("The discord token appears to be invalid. If you "
                              "are using a user token make sure --no-bot "
-                             "is set.")
+                             "is set. If you're using a bot, moke sure"
+                             "--no-bot is not set.")
         return True
 
     def get_messages(self, channel_id: Union[int, str]) -> List[str]:
@@ -69,6 +70,8 @@ class Discord:
 
             messages.append(result)
 
+        self.check_integrity(messages=messages)
+
         return messages
 
     def get_links(self, channel_id: str) -> List[Dict[str, str]]:
@@ -97,3 +100,17 @@ class Discord:
                                       "Date Suggested": j['timestamp']})
 
         return links
+
+    @staticmethod
+    def check_integrity(messages) -> bool:
+        """
+        Check that incoming messages are of type string.
+        """
+        for i in messages:
+            for k in i:
+                if type(k["content"]) != str:
+                    raise AttributeError("A message should be in the form of"
+                                         "a string. For some reason, Discord"
+                                         "has not sent it as a string.")
+
+        return True
