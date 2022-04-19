@@ -73,6 +73,11 @@ class Input:
         self.attributes.movie_list.mark_watched(
             watched_links=self.attributes.watched_links
         )
+        self.remove_watched_links()
+
+    def remove_watched_links(self) -> None:
+        [self.attributes.links.remove(i) for i in self.attributes.watched_links
+         if i in self.attributes.links]
 
     def setup_movie_list(self):
         """
@@ -86,14 +91,6 @@ class Input:
         self.attributes.movie_list.merge_duplicates(ignore=["Link"],
                                                     attribute="Link")
 
-        if self.current_content:
-            self.remove_already_present()
-
-        self.attributes.movie_list.fill_all_metadata(
-            tmdb_api_key=self.tmdb_api_key)
-
-        self.attributes.movie_list.merge_duplicates()
-
         if self.watched_channel_id is not None:
             self.mark_watched()
 
@@ -102,3 +99,11 @@ class Input:
                 attribute="Watched",
                 value="True"
             )
+
+        if self.current_content:
+            self.remove_already_present()
+
+        self.attributes.movie_list.fill_all_metadata(
+            tmdb_api_key=self.tmdb_api_key)
+
+        self.attributes.movie_list.merge_duplicates()
