@@ -65,7 +65,7 @@ class Input:
             value=current_links)
 
     def mark_watched(self):
-        links = self.get_links(channel_id=self.watched_channel_id)
+        links = self.get_links(channel_id=self.watched_channel_id, recalc=True)
 
         self.attributes.watched_links = [
             i["Link"] for i in links
