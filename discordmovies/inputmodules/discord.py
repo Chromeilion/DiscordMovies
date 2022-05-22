@@ -2,6 +2,7 @@ import requests
 import json
 from typing import Union, List, Dict
 import re
+from discordmovies.exceptions import DiscordPermissionError
 
 
 class Discord:
@@ -66,7 +67,20 @@ class Discord:
             if len(result) == 0:
                 break
 
-            before = result[-1]["id"]
+            try:
+                before = result[-1]["id"]
+            except KeyError as e:
+                try:
+                    # The most likely cause for a bad result is permissions, so
+                    # lets try to catch that.
+                    if result["message"] == "Missing Access":
+                        raise DiscordPermissionError("Bot seems to be missing "
+                                                     "permissions to read the "
+                                                     "channel!") from e
+                    else:
+                        raise e
+                except KeyError:
+                    raise e
 
             messages.append(result)
 
