@@ -68,3 +68,4 @@ class IMDB:
         movie["Trailer"] = str(video)
         movie["User Score"] = str(content["vote_average"])
         movie["ID"] = "IMDB: " + str(content_id)
+        movie["Release Date"] = str(content["release_date"]).split("-")[0]

@@ -68,3 +68,4 @@ class MAL:
         movie["Trailer"] = str(content["trailer"]["url"])
         movie["User Score"] = str(content["score"])
         movie["ID"] = "MAL: " + str(content_id)
+        movie["Release Date"] = str(content["aired"]["prop"]["from"]["year"])

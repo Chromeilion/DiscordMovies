@@ -15,7 +15,8 @@ class MovieCategories:
 
         self.all_categories = ["Poster", "Title", "Genres", "Runtime",
                                "Trailer", "User Score", "ID", "Link",
-                               "Date Suggested", "User", "Watched"]
+                               "Date Suggested", "User", "Watched",
+                               "Release Date"]
 
         necessary_categories = ["Title", "Link"]
 
