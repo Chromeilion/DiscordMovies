@@ -41,7 +41,9 @@ class SheetsHelper:
                 return []
 
             if column:
-                column_index = self.attributes.movie_list.get_cat_indexes()[column]
+                column_index = self.attributes["movie_list"].get_cat_indexes(
+                )[column]
+
                 return [i[column_index] for i in self.values]
             else:
                 return self.values
@@ -110,8 +112,9 @@ class SheetsHelper:
         """
         Checks values in watched column and updates them if they've changed.
         """
-        if "Watched" in self.attributes.movie_list.get_categories():
-            column_id = self.attributes.movie_list.get_cat_indexes()["Watched"]
+        if "Watched" in self.attributes["movie_list"].get_categories():
+            column_id = self.attributes["movie_list"].get_cat_indexes()[
+                "Watched"]
             row_indexes = []
 
             for k, i in enumerate(self.get_values(column="Link")):
@@ -120,17 +123,21 @@ class SheetsHelper:
 
             for i, j in enumerate(self.get_values(column="Watched",
                                                   force_recalc=True)):
-                if j == self.attributes.movie_list.get_categories()[column_id]:
+                if j == self.attributes["movie_list"].get_categories(
+                )[column_id]:
                     continue
+
                 if i in row_indexes:
                     if j != "TRUE":
                         self.handler.update_value(value=[["TRUE"]],
                                                   start_index=(column_id, i),
                                                   stop_index=(column_id, i))
+
                 else:
                     self.handler.update_value(value=[["FALSE"]],
                                               start_index=(column_id, i),
                                               stop_index=(column_id, i))
+
         else:
             print("Watched column not found, watched movies not updated.")
 
@@ -158,17 +165,17 @@ class SheetsHelper:
 
         if overwrite:
             self.handler.clear_sheet()
-            values = self.attributes.movie_list.get_movies_list()
+            values = self.attributes["movie_list"].get_movies_list()
         else:
-            values = self.attributes.movie_list.get_movies_list(
+            values = self.attributes["movie_list"].get_movies_list(
                 attributes_key=False)
 
-        link_column = self.attributes.movie_list.get_cat_indexes()["Link"]
-        categories = self.attributes.movie_list.get_categories()
+        link_column = self.attributes["movie_list"].get_cat_indexes()["Link"]
+        categories = self.attributes["movie_list"].get_categories()
         ignore_column = [categories]
 
         if not overwrite:
-            self.remove_row_not_listed(values=self.attributes.links,
+            self.remove_row_not_listed(values=self.attributes["links"],
                                        column=link_column,
                                        ignore=ignore_column)
 
@@ -177,8 +184,8 @@ class SheetsHelper:
 
         self.handler.append_sheet(values=values)
 
-        if self.attributes.watched_links:
-            self.update_watched(values=self.attributes.watched_links)
+        if self.attributes["watched_links"]:
+            self.update_watched(values=self.attributes["watched_links"])
 
         if self.reformat or overwrite:
             self.reformat_sheet()
@@ -188,8 +195,8 @@ class SheetsHelper:
         Create a new sheet, format it, and write to it.
         """
 
-        values = self.attributes.movie_list.get_movies_list()
+        values = self.attributes["movie_list"].get_movies_list()
 
-        self.handler.create_sheet(title=self.attributes.name)
+        self.handler.create_sheet(title=self.attributes["name"])
         self.format_sheet()
         self.handler.fill_sheet(inputs=values)

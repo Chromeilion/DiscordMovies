@@ -1,5 +1,6 @@
 from typing import Union
-from discordmovies.attributes import DiscordMoviesAttributes
+from discordmovies.attributes import DiscordMoviesAttributes, Keys, \
+    DiscordAttributes
 from typing import List
 from discordmovies.outputmodules.filehelper import FileHelper
 from discordmovies.inputmodules.input import Input
@@ -15,12 +16,14 @@ class DiscordMovies:
     def __init__(self, discord_auth_token: Union[str, int], bot: bool = True,
                  doc_name: str = "discordmovies", attributes: List[str] = None,
                  exclude_attributes: List[str] = None):
-        self.auth_token = discord_auth_token
+
+        self.keys = Keys(discord_auth_token=discord_auth_token)
         self.bot = bot
         self.attributes = DiscordMoviesAttributes(
             name=doc_name,
             attributes=attributes,
-            exclude_attributes=exclude_attributes
+            exclude_attributes=exclude_attributes,
+            bot=bot
         )
 
     def discord_to_file(self, filetype: str,
@@ -40,40 +43,46 @@ class DiscordMovies:
         file = FileHelper(filetype=filetype, attributes=self.attributes,
                           sheet_id=sheet_id, reformat_sheet=reformat_sheet)
 
+        self.keys["tmdb"] = tmdb_api_key
+
         current_content = file.get_values()
         # These next few if statements are checking the formatting of the
         # file. Basically if the header is not what's expected, the whole
         # sheet is overwritten.
         if current_content:
-            if current_content[0] != self.attributes.movie_list. \
+            if current_content[0] != self.attributes["movie_list"]. \
                     get_categories():
                 print("File formatting does not match current formatting "
                       "settings. Sheet will be completely rewritten.")
+
                 current_content = []
                 overwrite = True
+
             else:
                 overwrite = False
+
         else:
             overwrite = False
 
+        discord_attr = DiscordAttributes(channel_id=channel_id,
+                                         watched_channel_id=watched_channel_id,
+                                         max_messages=max_messages)
+
+        self.attributes["remove_watched"] = remove_watched
+        self.attributes["source"] = source
+
         inputs = Input(
-            source_type=source,
             current_content=current_content,
             attributes=self.attributes,
-            auth=self.auth_token,
-            bot=self.bot,
-            tmdb_api_key=tmdb_api_key,
-            watched_channel_id=watched_channel_id,
-            remove_watched=remove_watched,
-            movie_channel_id=channel_id,
-            max_messages=max_messages
+            keys=self.keys,
+            discord_attr=discord_attr,
         )
 
         if file.exists():
-            if not self.attributes.movie_list:
+            if not self.attributes["movie_list"]:
                 inputs.setup_movie_list()
             file.write_existing(overwrite=overwrite)
         else:
-            if not self.attributes.movie_list:
+            if not self.attributes["movie_list"]:
                 inputs.setup_movie_list()
             file.write_new()
