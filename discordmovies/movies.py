@@ -377,21 +377,21 @@ class MovieList(MovieCategories):
         if not self.check_attribute(attribute=attribute):
             raise ValueError("The given attribute is not valid.")
 
-        if isinstance(value, list):
-            removal_list = []
+        if not isinstance(value, str) and not isinstance(value, list):
+            raise AttributeError("'value' needs to be a list or a string.")
 
-            for i in self:
-                for j in value:
-                    if i[attribute] in j:
-                        removal_list.append(i)
-                        break
+        if isinstance(value, str):
+            value = [value]
 
-            [self.movies.remove(i) for i in removal_list]
+        removal_list = []
 
-        elif isinstance(value, str):
-            for i in self:
-                if value in i[attribute]:
-                    self.remove(i)
+        for i in self:
+            for j in value:
+                if i[attribute] in j or j in i[attribute]:
+                    removal_list.append(i)
+                    break
+
+        [self.movies.remove(i) for i in removal_list]
 
     def mark_watched(self, watched_links: List[str]):
         """

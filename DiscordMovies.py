@@ -160,6 +160,7 @@ if not args.remove_watched:
         remove_watched = False
 else:
     remove_watched = True
+
 if remove_watched:
     print("Watched movies will be removed.")
 
@@ -189,9 +190,6 @@ if args.exclude_attributes is None:
         exclude_attributes = args.attributes
 else:
     exclude_attributes = ast.literal_eval(args.exclude_attributes)
-
-if remove_watched:
-    print("Watched movies will be removed.")
 
 filename = args.filename
 max_messages = args.max_messages
