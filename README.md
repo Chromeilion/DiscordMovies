@@ -47,7 +47,8 @@ run, the film will be marked as watched.
 ## How can I host discordmovies myself?
 Any machine that runs python 3.8 can run discordmovies.
 I recommend setting up discordmovies on a server and having it run periodically 
-using something like cron job.
+using something like cron job. That being said, if you just want to run it once
+off, running it on a regular PC is not an issue.
 
 Nearly all settings can be set through environment variables, therefore, 
 instead of using command line arguments, I highly recommend a .env file in the 
