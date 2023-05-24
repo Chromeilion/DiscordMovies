@@ -1,6 +1,6 @@
-requests~=2.27.1
-python-dotenv~=0.19.2
-google-api-python-client~=2.36.0
+requests==2.31.0
+python-dotenv==1.0.0
+google-api-python-client==2.86.0
 google-auth-httplib2~=0.1.0
-google-auth-oauthlib~=0.4.6
-tqdm~=4.62.3
+google-auth-oauthlib==1.0.0
+tqdm==4.65.0
